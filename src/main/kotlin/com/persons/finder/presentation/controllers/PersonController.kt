@@ -5,6 +5,7 @@ import com.persons.finder.domain.services.PersonsService
 import com.persons.finder.domain.models.Location
 import com.persons.finder.domain.utils.DistanceCalculator
 import com.persons.finder.application.usecases.CreatePersonUseCase
+import com.persons.finder.application.usecases.GetPersonsByIdsUseCase
 import com.persons.finder.presentation.dto.mapper.LocationMapper
 import com.persons.finder.presentation.dto.mapper.PersonMapper
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
@@ -34,6 +35,9 @@ class PersonController {
     @Autowired
     internal lateinit var createPersonUseCase: CreatePersonUseCase
 
+    @Autowired
+    internal lateinit var getPersonsByIdsUseCase: GetPersonsByIdsUseCase
+
     @PostMapping("")
     fun createPerson(@Valid @RequestBody createPersonRequestDto: CreatePersonRequestDto): ResponseEntity<PersonResponseDto> {
         val response = createPersonUseCase.execute(createPersonRequestDto)
@@ -42,8 +46,7 @@ class PersonController {
 
     @GetMapping("")
     fun getPersonsByIds(@RequestParam("id") ids: List<Long>): ResponseEntity<List<PersonResponseDto>> {
-        val persons = personsService.getByIds(ids)
-        val responses = persons.map { PersonMapper.toResponseDto(it) }
+        val responses = getPersonsByIdsUseCase.execute(ids)
         return ResponseEntity.ok(responses)
     }
 

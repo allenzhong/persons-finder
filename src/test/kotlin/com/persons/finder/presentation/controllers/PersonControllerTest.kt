@@ -5,6 +5,7 @@ import com.persons.finder.domain.models.Person
 import com.persons.finder.domain.services.LocationsService
 import com.persons.finder.domain.services.PersonsService
 import com.persons.finder.application.usecases.CreatePersonUseCase
+import com.persons.finder.application.usecases.GetPersonsByIdsUseCase
 import com.persons.finder.domain.utils.DistanceCalculator
 import com.persons.finder.presentation.dto.mapper.LocationMapper
 import com.persons.finder.presentation.dto.mapper.PersonMapper
@@ -42,6 +43,9 @@ class PersonControllerTest {
     @Mock
     private lateinit var createPersonUseCase: CreatePersonUseCase
 
+    @Mock
+    private lateinit var getPersonsByIdsUseCase: GetPersonsByIdsUseCase
+
     private lateinit var personController: PersonController
 
     @BeforeEach
@@ -51,6 +55,7 @@ class PersonControllerTest {
             this.personsService = this@PersonControllerTest.personsService
             this.locationsService = this@PersonControllerTest.locationsService
             this.createPersonUseCase = this@PersonControllerTest.createPersonUseCase
+            this.getPersonsByIdsUseCase = this@PersonControllerTest.getPersonsByIdsUseCase
         }
     }
 
@@ -164,12 +169,12 @@ class PersonControllerTest {
     @Test
     fun `getPersonsByIds should return 200 OK with list of persons`() {
         // Given
-        val person1 = Person(name = "John Doe", id = 1L)
-        val person2 = Person(name = "Jane Smith", id = 2L)
-        val person3 = Person(name = "Bob Wilson", id = 3L)
+        val person1 = PersonResponseDto(id = 1L, name = "John Doe")
+        val person2 = PersonResponseDto(id = 2L, name = "Jane Smith")
+        val person3 = PersonResponseDto(id = 3L, name = "Bob Wilson")
         val ids = listOf(1L, 2L, 3L)
 
-        whenever(personsService.getByIds(ids)).thenReturn(listOf(person1, person2, person3))
+        whenever(getPersonsByIdsUseCase.execute(ids)).thenReturn(listOf(person1, person2, person3))
 
         // When
         val response: ResponseEntity<List<PersonResponseDto>> = personController.getPersonsByIds(ids)
@@ -187,14 +192,14 @@ class PersonControllerTest {
         assertEquals(person2.name, responseBody[1].name)
         assertEquals(person3.id, responseBody[2].id)
         assertEquals(person3.name, responseBody[2].name)
-        Mockito.verify(personsService).getByIds(ids)
+        verify(getPersonsByIdsUseCase).execute(ids)
     }
 
     @Test
     fun `getPersonsByIds should return empty list when no persons found`() {
         // Given
         val ids = listOf(1L, 2L, 3L)
-        whenever(personsService.getByIds(ids)).thenReturn(emptyList())
+        whenever(getPersonsByIdsUseCase.execute(ids)).thenReturn(emptyList())
 
         // When
         val response: ResponseEntity<List<PersonResponseDto>> = personController.getPersonsByIds(ids)
@@ -205,16 +210,16 @@ class PersonControllerTest {
         val responseBody = response.body
         assertNotNull(responseBody)
         assertEquals(0, responseBody.size)
-        Mockito.verify(personsService).getByIds(ids)
+        verify(getPersonsByIdsUseCase).execute(ids)
     }
 
     @Test
     fun `getPersonsByIds should handle single id`() {
         // Given
-        val person = Person(name = "Single Person", id = 1L)
+        val person = PersonResponseDto(id = 1L, name = "Single Person")
         val ids = listOf(1L)
 
-        whenever(personsService.getByIds(ids)).thenReturn(listOf(person))
+        whenever(getPersonsByIdsUseCase.execute(ids)).thenReturn(listOf(person))
 
         // When
         val response: ResponseEntity<List<PersonResponseDto>> = personController.getPersonsByIds(ids)
@@ -227,14 +232,14 @@ class PersonControllerTest {
         assertEquals(1, responseBody.size)
         assertEquals(person.id, responseBody[0].id)
         assertEquals(person.name, responseBody[0].name)
-        Mockito.verify(personsService).getByIds(ids)
+        verify(getPersonsByIdsUseCase).execute(ids)
     }
 
     @Test
     fun `getPersonsByIds should handle empty ids list`() {
         // Given
         val ids = emptyList<Long>()
-        whenever(personsService.getByIds(ids)).thenReturn(emptyList())
+        whenever(getPersonsByIdsUseCase.execute(ids)).thenReturn(emptyList())
 
         // When
         val response: ResponseEntity<List<PersonResponseDto>> = personController.getPersonsByIds(ids)
@@ -245,17 +250,17 @@ class PersonControllerTest {
         val responseBody = response.body
         assertNotNull(responseBody)
         assertEquals(0, responseBody.size)
-        Mockito.verify(personsService).getByIds(ids)
+        verify(getPersonsByIdsUseCase).execute(ids)
     }
 
     @Test
     fun `getPersonsByIds should return partial results when some ids do not exist`() {
         // Given
-        val person1 = Person(name = "John Doe", id = 1L)
-        val person3 = Person(name = "Bob Wilson", id = 3L)
+        val person1 = PersonResponseDto(id = 1L, name = "John Doe")
+        val person3 = PersonResponseDto(id = 3L, name = "Bob Wilson")
         val ids = listOf(1L, 2L, 3L)
 
-        whenever(personsService.getByIds(ids)).thenReturn(listOf(person1, person3))
+        whenever(getPersonsByIdsUseCase.execute(ids)).thenReturn(listOf(person1, person3))
 
         // When
         val response: ResponseEntity<List<PersonResponseDto>> = personController.getPersonsByIds(ids)
@@ -270,7 +275,7 @@ class PersonControllerTest {
         assertEquals(person1.name, responseBody[0].name)
         assertEquals(person3.id, responseBody[1].id)
         assertEquals(person3.name, responseBody[1].name)
-        Mockito.verify(personsService).getByIds(ids)
+        verify(getPersonsByIdsUseCase).execute(ids)
     }
 
     @Test
