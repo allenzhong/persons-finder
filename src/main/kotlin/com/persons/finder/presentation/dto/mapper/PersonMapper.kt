@@ -8,14 +8,13 @@ object PersonMapper {
     
     fun toDomain(createPersonRequestDto: CreatePersonRequestDto): Person {
         return Person(
-            id = 0L, // Assuming a new person has an ID of 0, to be set by the database
             name = createPersonRequestDto.name
         )
     }
     
     fun toResponseDto(person: Person): PersonResponseDto {
         return PersonResponseDto(
-            id = person.id,
+            id = person.id ?: 0L,
             name = person.name
         )
     }

@@ -29,3 +29,5 @@ replay_pid*
 
 build/
 .idea/httpRequests/
+
+data/

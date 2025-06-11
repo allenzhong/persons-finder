@@ -1,12 +1,12 @@
 package com.persons.finder.domain.services
 
 import com.persons.finder.data.Person
-import com.persons.finder.data.repositories.PersonRepository
-import org.springframework.beans.factory.annotation.Autowired
+import com.persons.finder.infrastructure.repositories.PersonRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
-class PersonsServiceImpl @Autowired constructor(
+class PersonsServiceImpl(
     private val personRepository: PersonRepository
 ) : PersonsService {
 

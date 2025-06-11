@@ -1,9 +1,6 @@
-package com.persons.finder.data.repositories
+package com.persons.finder.infrastructure.repositories
 
 import com.persons.finder.data.Person
+import org.springframework.data.repository.CrudRepository
 
-interface PersonRepository {
-    fun save(person: Person): Person
-    fun findById(id: Long): Person?
-    fun findAll(): List<Person>
-} 
+interface PersonRepository : CrudRepository<Person, Long> 
