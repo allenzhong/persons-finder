@@ -40,4 +40,32 @@ class GlobalExceptionHandler {
         )
         return ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST)
     }
+
+    @ExceptionHandler(PersonNotFoundException::class)
+    fun handlePersonNotFoundException(
+        ex: PersonNotFoundException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponseDto> {
+        val errorResponse = ErrorResponseDto(
+            status = HttpStatus.NOT_FOUND.value(),
+            error = "Not Found",
+            message = ex.message ?: "Person not found",
+            path = request.requestURI
+        )
+        return ResponseEntity(errorResponse, HttpStatus.NOT_FOUND)
+    }
+
+    @ExceptionHandler(RuntimeException::class)
+    fun handleRuntimeException(
+        ex: RuntimeException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponseDto> {
+        val errorResponse = ErrorResponseDto(
+            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            error = "Internal Server Error",
+            message = ex.message ?: "An unexpected error occurred",
+            path = request.requestURI
+        )
+        return ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
 }

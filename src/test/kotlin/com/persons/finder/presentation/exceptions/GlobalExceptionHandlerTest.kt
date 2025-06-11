@@ -89,4 +89,25 @@ class GlobalExceptionHandlerTest {
         val errors = errorResponse.message as Map<*, *>
         assertEquals(0, errors.size)
     }
+
+    @Test
+    fun `should handle PersonNotFoundException and return proper error response`() {
+        // Given
+        val personId = 999L
+        val exception = PersonNotFoundException(personId)
+        val request = mock<HttpServletRequest>()
+        whenever(request.requestURI).thenReturn("/api/persons/999/location")
+
+        // When
+        val response = handler.handlePersonNotFoundException(exception, request)
+
+        // Then
+        assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
+        assertNotNull(response.body)
+        val errorResponse = response.body!!
+        assertEquals(404, errorResponse.status)
+        assertEquals("Not Found", errorResponse.error)
+        assertEquals("Person with ID $personId not found", errorResponse.message)
+        assertEquals("/api/persons/999/location", errorResponse.path)
+    }
 } 

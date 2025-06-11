@@ -1,4 +1,4 @@
-package com.persons.finder.data
+package com.persons.finder.domain.models
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table

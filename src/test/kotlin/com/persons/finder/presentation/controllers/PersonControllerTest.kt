@@ -1,10 +1,15 @@
 package com.persons.finder.presentation.controllers
 
-import com.persons.finder.data.Person
+import com.persons.finder.domain.models.Person
+import com.persons.finder.domain.services.LocationsService
 import com.persons.finder.domain.services.PersonsService
+import com.persons.finder.presentation.dto.mapper.LocationMapper
 import com.persons.finder.presentation.dto.mapper.PersonMapper
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
+import com.persons.finder.presentation.dto.request.UpdateLocationRequestDto
+import com.persons.finder.presentation.dto.response.LocationResponseDto
 import com.persons.finder.presentation.dto.response.PersonResponseDto
+import com.persons.finder.presentation.exceptions.PersonNotFoundException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -17,6 +22,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.never
+import org.junit.jupiter.api.assertThrows
 
 @ExtendWith(MockitoExtension::class)
 class PersonControllerTest {
@@ -24,11 +32,14 @@ class PersonControllerTest {
     @Mock
     private lateinit var personsService: PersonsService
 
+    @Mock
+    private lateinit var locationsService: LocationsService
+
     private lateinit var personController: PersonController
 
     @BeforeEach
     fun setUp() {
-        personController = PersonController(personsService)
+        personController = PersonController(personsService, locationsService)
     }
 
     @Test
@@ -37,7 +48,7 @@ class PersonControllerTest {
         val createPersonRequestDto = CreatePersonRequestDto(name = "Allen")
         val expectedPerson = Person(name = "Allen", id = 1L)
 
-        whenever(personsService.createPerson(any())).thenReturn(expectedPerson)
+        whenever(personsService.save(any())).thenReturn(expectedPerson)
 
         // When
         val response: ResponseEntity<PersonResponseDto> = personController.createPerson(createPersonRequestDto)
@@ -50,7 +61,7 @@ class PersonControllerTest {
         assertNotNull(responseBody)
         assertEquals(expectedPerson.id, responseBody.id)
         assertEquals(expectedPerson.name, responseBody.name)
-        Mockito.verify(personsService).createPerson(any())
+        Mockito.verify(personsService).save(any())
     }
 
     @Test
@@ -60,7 +71,7 @@ class PersonControllerTest {
         val expectedPerson = Person(name = "Test Person", id = 1L)
         val expectedDomainPerson = PersonMapper.toDomain(createPersonRequestDto)
 
-        whenever(personsService.createPerson(expectedDomainPerson)).thenReturn(expectedPerson)
+        whenever(personsService.save(expectedDomainPerson)).thenReturn(expectedPerson)
 
         // When
         val response = personController.createPerson(createPersonRequestDto)
@@ -72,7 +83,71 @@ class PersonControllerTest {
         assertNotNull(responseBody)
         assertEquals(expectedPerson.id, responseBody.id)
         assertEquals(expectedPerson.name, responseBody.name)
-        Mockito.verify(personsService).createPerson(expectedDomainPerson)
+        Mockito.verify(personsService).save(expectedDomainPerson)
+    }
+
+    @Test
+    fun `updatePersonLocation should return 200 OK with location data`() {
+        // Given
+        val personId = 1L
+        val updateLocationRequestDto = UpdateLocationRequestDto(latitude = 40.7128, longitude = -74.0060)
+        val expectedPerson = Person(name = "John Doe", id = personId)
+
+        whenever(personsService.getById(personId)).thenReturn(expectedPerson)
+        whenever(locationsService.addLocation(any())).then { }
+
+        // When
+        val response: ResponseEntity<LocationResponseDto> = personController.updatePersonLocation(personId, updateLocationRequestDto)
+
+        // Then
+        assertNotNull(response)
+        assertEquals(HttpStatus.OK, response.statusCode)
+        val responseBody = response.body
+        assertNotNull(responseBody)
+        assertEquals(personId, responseBody.referenceId)
+        assertEquals(40.7128, responseBody.latitude)
+        assertEquals(-74.0060, responseBody.longitude)
+        Mockito.verify(personsService).getById(personId)
+        Mockito.verify(locationsService).addLocation(any())
+    }
+
+    @Test
+    fun `updatePersonLocation should call services with correct parameters`() {
+        // Given
+        val personId = 2L
+        val updateLocationRequestDto = UpdateLocationRequestDto(latitude = 51.5074, longitude = -0.1278)
+        val expectedPerson = Person(name = "Jane Smith", id = personId)
+        val expectedLocation = LocationMapper.toDomain(personId, updateLocationRequestDto)
+
+        whenever(personsService.getById(personId)).thenReturn(expectedPerson)
+        whenever(locationsService.addLocation(expectedLocation)).then { }
+
+        // When
+        val response = personController.updatePersonLocation(personId, updateLocationRequestDto)
+
+        // Then
+        assertNotNull(response)
+        assertEquals(HttpStatus.OK, response.statusCode)
+        Mockito.verify(personsService).getById(personId)
+        Mockito.verify(locationsService).addLocation(expectedLocation)
+    }
+
+    @Test
+    fun `updatePersonLocation should throw when person is not found`() {
+        // Given
+        val personId = 999L
+        val updateLocationRequestDto = UpdateLocationRequestDto(latitude = 40.7128, longitude = -74.0060)
+
+        whenever(personsService.getById(personId)).thenThrow(PersonNotFoundException(personId))
+
+        // When / Then
+        // Here we are testing that the controller throws a PersonNotFoundException when the person is not found
+        // And the exception is handled by the GlobalExceptionHandler to return a 404 status code
+        assertThrows<PersonNotFoundException> {
+            personController.updatePersonLocation(personId, updateLocationRequestDto)
+        }
+        verify(personsService).getById(personId)
+        verify(locationsService, never()).addLocation(any())
     }
 
     @Test

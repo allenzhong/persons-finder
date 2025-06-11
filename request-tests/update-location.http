@@ -1,0 +1,382 @@
+### Persons Finder API - Update Location Tests
+
+# Base URL
+@baseUrl = http://localhost:8080
+@apiPath = /api/v1/persons
+
+### 1. Update Location - Valid Request (Person ID 1 -> ReferenceId 1)
+PUT {{baseUrl}}{{apiPath}}/1/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 2. Update Location - Valid Request (Person ID 2 -> ReferenceId 2)
+PUT {{baseUrl}}{{apiPath}}/2/location
+Content-Type: application/json
+
+{
+  "latitude": 51.5074,
+  "longitude": -0.1278
+}
+
+### 3. Update Location - Valid Request (Person ID 3 -> ReferenceId 3)
+PUT {{baseUrl}}{{apiPath}}/3/location
+Content-Type: application/json
+
+{
+  "latitude": 35.6762,
+  "longitude": 139.6503
+}
+
+### 4. Update Location - Valid Request (Person ID 4 -> ReferenceId 4)
+PUT {{baseUrl}}{{apiPath}}/4/location
+Content-Type: application/json
+
+{
+  "latitude": -33.8688,
+  "longitude": 151.2093
+}
+
+### 5. Update Location - Valid Request (Person ID 5 -> ReferenceId 5, North Pole)
+PUT {{baseUrl}}{{apiPath}}/5/location
+Content-Type: application/json
+
+{
+  "latitude": 90.0,
+  "longitude": 0.0
+}
+
+### 6. Update Location - Valid Request (Person ID 6 -> ReferenceId 6, South Pole)
+PUT {{baseUrl}}{{apiPath}}/6/location
+Content-Type: application/json
+
+{
+  "latitude": -90.0,
+  "longitude": 0.0
+}
+
+### 7. Update Location - Valid Request (Person ID 7 -> ReferenceId 7, International Date Line)
+PUT {{baseUrl}}{{apiPath}}/7/location
+Content-Type: application/json
+
+{
+  "latitude": 0.0,
+  "longitude": 180.0
+}
+
+### 8. Update Location - Valid Request (Person ID 8 -> ReferenceId 8, Prime Meridian)
+PUT {{baseUrl}}{{apiPath}}/8/location
+Content-Type: application/json
+
+{
+  "latitude": 0.0,
+  "longitude": -180.0
+}
+
+### 9. Update Location - Valid Request (Person ID 9 -> ReferenceId 9, Equator)
+PUT {{baseUrl}}{{apiPath}}/9/location
+Content-Type: application/json
+
+{
+  "latitude": 0.0,
+  "longitude": 0.0
+}
+
+### 10. Update Location - Valid Request (Person ID 10 -> ReferenceId 10, Decimal Precision)
+PUT {{baseUrl}}{{apiPath}}/10/location
+Content-Type: application/json
+
+{
+  "latitude": 37.7749,
+  "longitude": -122.4194
+}
+
+### 11. Update Location - Valid Request (Large Person ID -> Large ReferenceId)
+PUT {{baseUrl}}{{apiPath}}/999999/location
+Content-Type: application/json
+
+{
+  "latitude": 25.7617,
+  "longitude": -80.1918
+}
+
+### 12. Update Location - Valid Request (Person ID 100 -> ReferenceId 100)
+PUT {{baseUrl}}{{apiPath}}/100/location
+Content-Type: application/json
+
+{
+  "latitude": 48.8566,
+  "longitude": 2.3522
+}
+
+### 13. Update Location - Valid Request (Person ID 42 -> ReferenceId 42)
+PUT {{baseUrl}}{{apiPath}}/42/location
+Content-Type: application/json
+
+{
+  "latitude": 52.5200,
+  "longitude": 13.4050
+}
+
+### 14. Update Location - Valid Request (Person ID 0 -> ReferenceId 0, Edge Case)
+PUT {{baseUrl}}{{apiPath}}/0/location
+Content-Type: application/json
+
+{
+  "latitude": 55.7558,
+  "longitude": 37.6176
+}
+
+### 15. Update Location - Valid Request (Person ID 12345 -> ReferenceId 12345)
+PUT {{baseUrl}}{{apiPath}}/12345/location
+Content-Type: application/json
+
+{
+  "latitude": 39.9042,
+  "longitude": 116.4074
+}
+
+### 16. Update Location - Invalid Request: Latitude Too High
+PUT {{baseUrl}}{{apiPath}}/16/location
+Content-Type: application/json
+
+{
+  "latitude": 91.0,
+  "longitude": 0.0
+}
+
+### 17. Update Location - Invalid Request: Latitude Too Low
+PUT {{baseUrl}}{{apiPath}}/17/location
+Content-Type: application/json
+
+{
+  "latitude": -91.0,
+  "longitude": 0.0
+}
+
+### 18. Update Location - Invalid Request: Longitude Too High
+PUT {{baseUrl}}{{apiPath}}/18/location
+Content-Type: application/json
+
+{
+  "latitude": 0.0,
+  "longitude": 181.0
+}
+
+### 19. Update Location - Invalid Request: Longitude Too Low
+PUT {{baseUrl}}{{apiPath}}/19/location
+Content-Type: application/json
+
+{
+  "latitude": 0.0,
+  "longitude": -181.0
+}
+
+### 20. Update Location - Invalid Request: Missing Latitude
+PUT {{baseUrl}}{{apiPath}}/1/location
+Content-Type: application/json
+
+{
+  "longitude": 0.0
+}
+
+### 21. Update Location - Invalid Request: Missing Longitude
+PUT {{baseUrl}}{{apiPath}}/1/location
+Content-Type: application/json
+
+{
+  "latitude": 0.0
+}
+
+### 22. Update Location - Invalid Request: Missing Both Fields
+PUT {{baseUrl}}{{apiPath}}/22/location
+Content-Type: application/json
+
+{
+}
+
+### 23. Update Location - Invalid Request: Null Latitude
+PUT {{baseUrl}}{{apiPath}}/23/location
+Content-Type: application/json
+
+{
+  "latitude": null,
+  "longitude": 0.0
+}
+
+### 24. Update Location - Invalid Request: Null Longitude
+PUT {{baseUrl}}{{apiPath}}/24/location
+Content-Type: application/json
+
+{
+  "latitude": 0.0,
+  "longitude": null
+}
+
+### 25. Update Location - Invalid Request: Wrong Data Types
+PUT {{baseUrl}}{{apiPath}}/25/location
+Content-Type: application/json
+
+{
+  "latitude": "invalid",
+  "longitude": "invalid"
+}
+
+### 26. Update Location - Invalid Request: Empty Body
+PUT {{baseUrl}}{{apiPath}}/26/location
+Content-Type: application/json
+
+
+### 27. Update Location - Invalid Request: Wrong Content Type
+PUT {{baseUrl}}{{apiPath}}/27/location
+Content-Type: text/plain
+
+40.7128, -74.0060
+
+### 28. Update Location - Invalid Request: Malformed JSON
+PUT {{baseUrl}}{{apiPath}}/28/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060,
+  "invalid": "test"
+}
+
+### 29. Update Location - Invalid Request: Non-existent Person ID
+PUT {{baseUrl}}{{apiPath}}/999999999/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 30. Update Location - Invalid Request: Negative Person ID
+PUT {{baseUrl}}{{apiPath}}/-1/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 31. Update Location - Invalid Request: Invalid Person ID Format
+PUT {{baseUrl}}{{apiPath}}/abc/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 32. Update Location - Invalid Request: Invalid Person ID Format (Decimal)
+PUT {{baseUrl}}{{apiPath}}/1.5/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 33. Update Location - Invalid Request: Invalid Person ID Format (Special Characters)
+PUT {{baseUrl}}{{apiPath}}/1@2/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 34. Update Location - Valid Request: Update Same Person Multiple Times (Person ID 1)
+# First update - should set referenceId to 1
+PUT {{baseUrl}}{{apiPath}}/1/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 35. Update Location - Valid Request: Update Same Person Multiple Times (Person ID 1)
+# Second update - should overwrite location but keep referenceId as 1
+PUT {{baseUrl}}{{apiPath}}/1/location
+Content-Type: application/json
+
+{
+  "latitude": 34.0522,
+  "longitude": -118.2437
+}
+
+### 36. Update Location - Valid Request: Update Same Person Multiple Times (Person ID 1)
+# Third update - should overwrite location but keep referenceId as 1
+PUT {{baseUrl}}{{apiPath}}/1/location
+Content-Type: application/json
+
+{
+  "latitude": 41.8781,
+  "longitude": -87.6298
+}
+
+### 37. Update Location - Valid Request: Different Person IDs, Same Coordinates
+# Person ID 50 -> ReferenceId 50
+PUT {{baseUrl}}{{apiPath}}/50/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 38. Update Location - Valid Request: Different Person IDs, Same Coordinates
+# Person ID 51 -> ReferenceId 51 (same coordinates as person 50)
+PUT {{baseUrl}}{{apiPath}}/51/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 39. Update Location - Valid Request: Different Person IDs, Same Coordinates
+# Person ID 52 -> ReferenceId 52 (same coordinates as person 50 and 51)
+PUT {{baseUrl}}{{apiPath}}/52/location
+Content-Type: application/json
+
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+
+### 40. Update Location - Valid Request: Sequential Person IDs
+# Person ID 1000 -> ReferenceId 1000
+PUT {{baseUrl}}{{apiPath}}/1000/location
+Content-Type: application/json
+
+{
+  "latitude": 19.4326,
+  "longitude": -99.1332
+}
+
+### 41. Update Location - Valid Request: Sequential Person IDs
+# Person ID 1001 -> ReferenceId 1001
+PUT {{baseUrl}}{{apiPath}}/1001/location
+Content-Type: application/json
+
+{
+  "latitude": 19.4326,
+  "longitude": -99.1332
+}
+
+### 42. Update Location - Valid Request: Sequential Person IDs
+# Person ID 1002 -> ReferenceId 1002
+PUT {{baseUrl}}{{apiPath}}/1002/location
+Content-Type: application/json
+
+{
+  "latitude": 19.4326,
+  "longitude": -99.1332
+}

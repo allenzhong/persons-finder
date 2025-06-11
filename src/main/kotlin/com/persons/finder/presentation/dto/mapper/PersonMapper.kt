@@ -1,6 +1,6 @@
 package com.persons.finder.presentation.dto.mapper
 
-import com.persons.finder.data.Person
+import com.persons.finder.domain.models.Person
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
 import com.persons.finder.presentation.dto.response.PersonResponseDto
 

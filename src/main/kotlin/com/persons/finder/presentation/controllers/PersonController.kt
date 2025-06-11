@@ -1,8 +1,12 @@
 package com.persons.finder.presentation.controllers
 
+import com.persons.finder.domain.services.LocationsService
 import com.persons.finder.domain.services.PersonsService
+import com.persons.finder.presentation.dto.mapper.LocationMapper
 import com.persons.finder.presentation.dto.mapper.PersonMapper
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
+import com.persons.finder.presentation.dto.request.UpdateLocationRequestDto
+import com.persons.finder.presentation.dto.response.LocationResponseDto
 import com.persons.finder.presentation.dto.response.PersonResponseDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -13,12 +17,13 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("api/v1/persons")
 class PersonController @Autowired constructor(
-    private val personsService: PersonsService
+    private val personsService: PersonsService,
+    private val locationsService: LocationsService
 ) {
     @PostMapping("")
     fun createPerson(@Valid @RequestBody createPersonRequestDto: CreatePersonRequestDto): ResponseEntity<PersonResponseDto> {
         val person = PersonMapper.toDomain(createPersonRequestDto)
-        val createdPerson = personsService.createPerson(person)
+        val createdPerson = personsService.save(person)
         val response = PersonMapper.toResponseDto(createdPerson)
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
@@ -30,15 +35,23 @@ class PersonController @Autowired constructor(
         return ResponseEntity.ok(responses)
     }
 
-    /*
-        TODO PUT API to update/create someone's location using latitude and longitude
-        (JSON) Body
-     */
+    @PutMapping("/{id}/location")
+    fun updatePersonLocation(
+        @PathVariable id: Long,
+        @Valid @RequestBody updateLocationRequestDto: UpdateLocationRequestDto
+    ): ResponseEntity<LocationResponseDto> {
+        // First verify the person exists
+        personsService.getById(id)
+        
+        // Create or update the location
+        val location = LocationMapper.toDomain(id, updateLocationRequestDto)
+        locationsService.addLocation(location)
+        
+        val response = LocationMapper.toResponseDto(location)
+        return ResponseEntity.ok(response)
+    }
 
-    /*
-        TODO POST API to create a 'person'
-        (JSON) Body and return the id of the created entity
-    */
+
 
 
     /*
@@ -47,12 +60,5 @@ class PersonController @Autowired constructor(
         // Example
         // John wants to know who is around his location within a radius of 10km
         // API would be called using John's id and a radius 10km
-     */
-
-    /*
-        TODO GET API to retrieve a person or persons name using their ids
-        // Example
-        // John has the list of people around them, now they need to retrieve everybody's names to display in the app
-        // API would be called using person or persons ids
      */
 }

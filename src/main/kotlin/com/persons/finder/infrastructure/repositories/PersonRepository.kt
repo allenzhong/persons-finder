@@ -1,6 +1,6 @@
 package com.persons.finder.infrastructure.repositories
 
-import com.persons.finder.data.Person
+import com.persons.finder.domain.models.Person
 import org.springframework.data.jdbc.repository.query.Query
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.query.Param

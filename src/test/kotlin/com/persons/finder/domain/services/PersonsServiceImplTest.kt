@@ -1,6 +1,6 @@
 package com.persons.finder.domain.services
 
-import com.persons.finder.data.Person
+import com.persons.finder.domain.models.Person
 import com.persons.finder.infrastructure.repositories.PersonRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,7 +37,7 @@ class PersonsServiceImplTest {
         whenever(personRepository.save(inputPerson)).thenReturn(savedPerson)
 
         // When - Call the service method
-        val result = personsService.createPerson(inputPerson)
+        val result = personsService.save(inputPerson)
 
         // Then - Verify the result and repository interaction
         assertNotNull(result)
@@ -59,7 +59,7 @@ class PersonsServiceImplTest {
         whenever(personRepository.save(inputPerson)).thenReturn(savedPerson)
 
         // When - Call the service method
-        val result = personsService.createPerson(inputPerson)
+        val result = personsService.save(inputPerson)
 
         // Then - Verify the result and repository interaction
         assertNotNull(result)
@@ -79,7 +79,7 @@ class PersonsServiceImplTest {
         whenever(personRepository.save(inputPerson)).thenReturn(savedPerson)
 
         // When - Call the service method
-        val result = personsService.createPerson(inputPerson)
+        val result = personsService.save(inputPerson)
 
         // Then - Verify the result and repository interaction
         assertNotNull(result)
@@ -99,7 +99,7 @@ class PersonsServiceImplTest {
         whenever(personRepository.save(inputPerson)).thenReturn(savedPerson)
 
         // When - Call the service method
-        val result = personsService.createPerson(inputPerson)
+        val result = personsService.save(inputPerson)
 
         // Then - Verify the result and repository interaction
         assertNotNull(result)
@@ -119,7 +119,7 @@ class PersonsServiceImplTest {
         whenever(personRepository.save(inputPerson)).thenReturn(savedPerson)
 
         // When - Call the service method
-        val result = personsService.createPerson(inputPerson)
+        val result = personsService.save(inputPerson)
 
         // Then - Verify the result and repository interaction
         assertNotNull(result)
@@ -139,7 +139,7 @@ class PersonsServiceImplTest {
         whenever(personRepository.save(inputPerson)).thenReturn(savedPerson)
 
         // When - Call the service method
-        val result = personsService.createPerson(inputPerson)
+        val result = personsService.save(inputPerson)
 
         // Then - Verify the result and repository interaction
         assertNotNull(result)
