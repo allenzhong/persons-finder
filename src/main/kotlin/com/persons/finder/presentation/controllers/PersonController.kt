@@ -1,13 +1,30 @@
-package com.persons.finder.presentation
+package com.persons.finder.presentation.controllers
 
+import com.persons.finder.domain.services.PersonsService
+import com.persons.finder.presentation.dto.mapper.PersonMapper
+import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
+import com.persons.finder.presentation.dto.response.PersonResponseDto
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("api/v1/persons")
-class PersonController @Autowired constructor() {
+class PersonController @Autowired constructor(
+    private val personsService: PersonsService
+) {
+    @PostMapping("")
+    fun createPerson(@Valid @RequestBody createPersonRequestDto: CreatePersonRequestDto): ResponseEntity<PersonResponseDto> {
+        val person = PersonMapper.toDomain(createPersonRequestDto)
+        val createdPerson = personsService.createPerson(person)
+        val response = PersonMapper.toResponseDto(createdPerson)
+        return ResponseEntity.status(HttpStatus.CREATED).body(response)
+    }
 
     /*
         TODO PUT API to update/create someone's location using latitude and longitude
@@ -18,6 +35,7 @@ class PersonController @Autowired constructor() {
         TODO POST API to create a 'person'
         (JSON) Body and return the id of the created entity
     */
+
 
     /*
         TODO GET API to retrieve people around query location with a radius in KM, Use query param for radius.
@@ -33,10 +51,4 @@ class PersonController @Autowired constructor() {
         // John has the list of people around them, now they need to retrieve everybody's names to display in the app
         // API would be called using person or persons ids
      */
-
-    @GetMapping("")
-    fun getExample(): String {
-        return "Hello Example"
-    }
-
 }

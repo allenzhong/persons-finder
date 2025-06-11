@@ -14,4 +14,9 @@ class PersonsServiceImpl : PersonsService {
         TODO("Not yet implemented")
     }
 
+    override fun createPerson(person: Person): Person {
+        // For now, just return the person as-is
+        // In a real implementation, this would save to database and return with generated ID
+        return person
+    }
 }

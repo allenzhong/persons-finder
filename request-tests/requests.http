@@ -1,0 +1,160 @@
+### Persons Finder API - Create Person Tests
+
+# Base URL
+@baseUrl = http://localhost:8080
+@apiPath = /api/v1/persons
+
+### 1. Create Person - Valid Request
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "Allen"
+}
+
+### 2. Create Person - Valid Request with Special Characters
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "José María O'Connor-Smith"
+}
+
+### 3. Create Person - Valid Request with Unicode Characters
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "李小明"
+}
+
+### 4. Create Person - Valid Request with Numbers
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "John123"
+}
+
+### 5. Create Person - Valid Request with Mixed Content
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "John Doe Jr. III (123)"
+}
+
+### 6. Create Person - Valid Request with Leading/Trailing Spaces
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "  John Doe  "
+}
+
+### 7. Create Person - Valid Request with Maximum Length (100 characters)
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "This is a very long name that reaches the maximum allowed length of one hundred characters exactly"
+}
+
+### 8. Create Person - Invalid Request: Empty Name
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": ""
+}
+
+### 9. Create Person - Invalid Request: Blank Name (spaces only)
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "   "
+}
+
+### 10. Create Person - Invalid Request: Missing Name Field
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+}
+
+### 11. Create Person - Invalid Request: Name Too Long (101 characters)
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "This is a very long name that exceeds the maximum allowed length of one hundred characters by one character"
+}
+
+### 12. Create Person - Invalid Request: Invalid JSON
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "Allen",
+  "invalid": field
+}
+
+### 13. Create Person - Invalid Request: Wrong Content Type
+POST {{baseUrl}}{{apiPath}}
+Content-Type: text/plain
+
+Allen
+
+### 14. Create Person - Invalid Request: Empty Body
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+
+### 15. Create Person - Invalid Request: Null Name (if supported)
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": null
+}
+
+### 16. Create Person - Valid Request: Single Character
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "A"
+}
+
+### 17. Create Person - Valid Request: Name with Tabs and Newlines
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "John\tDoe\nJr."
+}
+
+### 18. Create Person - Valid Request: Name with Special Symbols
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "John@Doe#123"
+}
+
+### 19. Create Person - Valid Request: Name with Emojis
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "John 😀 Doe"
+}
+
+### 20. Create Person - Valid Request: Name with HTML Entities
+POST {{baseUrl}}{{apiPath}}
+Content-Type: application/json
+
+{
+  "name": "John & Doe"
+} 

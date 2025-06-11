@@ -5,4 +5,5 @@ import com.persons.finder.data.Person
 interface PersonsService {
     fun getById(id: Long): Person
     fun save(person: Person)
+    fun createPerson(person: Person): Person
 }
