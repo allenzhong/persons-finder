@@ -1,10 +1,14 @@
 package com.persons.finder.domain.services
 
 import com.persons.finder.data.Person
+import com.persons.finder.data.repositories.PersonRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class PersonsServiceImpl : PersonsService {
+class PersonsServiceImpl @Autowired constructor(
+    private val personRepository: PersonRepository
+) : PersonsService {
 
     override fun getById(id: Long): Person {
         TODO("Not yet implemented")
@@ -15,8 +19,6 @@ class PersonsServiceImpl : PersonsService {
     }
 
     override fun createPerson(person: Person): Person {
-        // For now, just return the person as-is
-        // In a real implementation, this would save to database and return with generated ID
-        return person
+        return personRepository.save(person)
     }
 }
