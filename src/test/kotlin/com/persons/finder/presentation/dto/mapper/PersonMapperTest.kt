@@ -51,7 +51,7 @@ class PersonMapperTest {
         // Then
         assertAll(
             { assertNotNull(result) },
-            { assertEquals(0L, result.id) }, // Should default to 0L when id is null
+            { assertNull(result.id) }, // Should preserve null when id is null
             { assertEquals("John Doe", result.name) }
         )
     }

@@ -25,6 +25,9 @@ import org.mockito.kotlin.whenever
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.never
 import org.junit.jupiter.api.assertThrows
+import kotlin.test.assertTrue
+import com.persons.finder.domain.models.Location
+import com.persons.finder.domain.utils.DistanceCalculator
 
 @ExtendWith(MockitoExtension::class)
 class PersonControllerTest {
@@ -260,5 +263,162 @@ class PersonControllerTest {
         assertEquals(person3.id, responseBody[1].id)
         assertEquals(person3.name, responseBody[1].name)
         Mockito.verify(personsService).getByIds(ids)
+    }
+
+    @Test
+    fun `getNearbyPersons should return 200 OK with nearby persons sorted by distance`() {
+        // Given
+        val lat = 40.7128
+        val lon = -74.0060
+        val radiusKm = 10.0
+        
+        val nearbyLocation = Location(
+            referenceId = 1L,
+            latitude = 40.7129,
+            longitude = -74.0061
+        )
+        
+        val farLocation = Location(
+            referenceId = 2L,
+            latitude = 40.7138,
+            longitude = -74.0070
+        )
+        
+        val nearbyPerson = Person(name = "Nearby Person", id = 1L)
+        val farPerson = Person(name = "Far Person", id = 2L)
+        
+        whenever(locationsService.findAround(lat, lon, radiusKm))
+            .thenReturn(listOf(nearbyLocation, farLocation))
+        whenever(personsService.getByIds(listOf(1L, 2L)))
+            .thenReturn(listOf(nearbyPerson, farPerson))
+
+        // When
+        val response = personController.getNearbyPersons(lat, lon, radiusKm)
+
+        // Then
+        assertEquals(HttpStatus.OK, response.statusCode)
+        val responseBody = response.body
+        assertNotNull(responseBody)
+        assertEquals(2, responseBody.size)
+        assertEquals("Nearby Person", responseBody[0].person.name)
+        assertEquals("Far Person", responseBody[1].person.name)
+        assertTrue(responseBody[0].distanceKm < responseBody[1].distanceKm)
+        verify(locationsService).findAround(lat, lon, radiusKm)
+        verify(personsService).getByIds(listOf(1L, 2L))
+    }
+
+    @Test
+    fun `getNearbyPersons should return empty list when no persons nearby`() {
+        // Given
+        val lat = 40.7128
+        val lon = -74.0060
+        val radiusKm = 1.0
+        
+        whenever(locationsService.findAround(lat, lon, radiusKm))
+            .thenReturn(emptyList())
+
+        // When
+        val response = personController.getNearbyPersons(lat, lon, radiusKm)
+
+        // Then
+        assertEquals(HttpStatus.OK, response.statusCode)
+        val responseBody = response.body
+        assertNotNull(responseBody)
+        assertTrue(responseBody.isEmpty())
+        verify(locationsService).findAround(lat, lon, radiusKm)
+        verify(personsService, never()).getByIds(any())
+    }
+
+    @Test
+    fun `getNearbyPersons should handle edge case coordinates`() {
+        // Given
+        val lat = 0.0
+        val lon = 0.0
+        val radiusKm = 100.0
+        
+        whenever(locationsService.findAround(lat, lon, radiusKm))
+            .thenReturn(emptyList())
+
+        // When
+        val response = personController.getNearbyPersons(lat, lon, radiusKm)
+
+        // Then
+        assertEquals(HttpStatus.OK, response.statusCode)
+        verify(locationsService).findAround(lat, lon, radiusKm)
+    }
+
+    @Test
+    fun `getNearbyPersons should handle maximum radius`() {
+        // Given
+        val lat = 40.7128
+        val lon = -74.0060
+        val radiusKm = 1000.0
+        
+        whenever(locationsService.findAround(lat, lon, radiusKm))
+            .thenReturn(emptyList())
+
+        // When
+        val response = personController.getNearbyPersons(lat, lon, radiusKm)
+
+        // Then
+        assertEquals(HttpStatus.OK, response.statusCode)
+        verify(locationsService).findAround(lat, lon, radiusKm)
+    }
+
+    @Test
+    fun `getNearbyPersons should handle minimum radius`() {
+        // Given
+        val lat = 40.7128
+        val lon = -74.0060
+        val radiusKm = 0.1
+        
+        whenever(locationsService.findAround(lat, lon, radiusKm))
+            .thenReturn(emptyList())
+
+        // When
+        val response = personController.getNearbyPersons(lat, lon, radiusKm)
+
+        // Then
+        assertEquals(HttpStatus.OK, response.statusCode)
+        verify(locationsService).findAround(lat, lon, radiusKm)
+    }
+
+    @Test
+    fun `getNearbyPersons should filter out locations with missing persons`() {
+        // Given
+        val lat = 40.7128
+        val lon = -74.0060
+        val radiusKm = 10.0
+        
+        val locationWithPerson = Location(
+            referenceId = 1L,
+            latitude = 40.7129,
+            longitude = -74.0061
+        )
+        
+        val locationWithoutPerson = Location(
+            referenceId = 999L, // Non-existent person
+            latitude = 40.7130,
+            longitude = -74.0062
+        )
+        
+        val person = Person(name = "Test Person", id = 1L)
+        
+        whenever(locationsService.findAround(lat, lon, radiusKm))
+            .thenReturn(listOf(locationWithPerson, locationWithoutPerson))
+        whenever(personsService.getByIds(listOf(1L, 999L)))
+            .thenReturn(listOf(person)) // Only person 1 exists
+
+        // When
+        val response = personController.getNearbyPersons(lat, lon, radiusKm)
+
+        // Then
+        assertEquals(HttpStatus.OK, response.statusCode)
+        val responseBody = response.body
+        assertNotNull(responseBody)
+        assertEquals(1, responseBody.size) // Only the person that exists
+        assertEquals("Test Person", responseBody[0].person.name)
+        verify(locationsService).findAround(lat, lon, radiusKm)
+        verify(personsService).getByIds(listOf(1L, 999L))
     }
 }

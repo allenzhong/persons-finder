@@ -1,0 +1,67 @@
+
+### Create people near Sherwood Reserve, Brownsbay
+POST http://localhost:8080/api/v1/persons
+Content-Type: application/json
+
+{"name": "Alice Sherwood"}
+
+###
+POST http://localhost:8080/api/v1/persons
+Content-Type: application/json
+
+{"name": "Bob Sherwood"}
+
+###
+POST http://localhost:8080/api/v1/persons
+Content-Type: application/json
+
+{"name": "Charlie Sherwood"}
+
+### Remember to change the IDs below to match the created persons
+PUT http://localhost:8080/api/v1/persons/19/location
+Content-Type: application/json
+
+{"latitude": -36.71728717024384, "longitude": 174.73580751020845}
+
+### Remember to change the IDs below to match the created persons
+PUT http://localhost:8080/api/v1/persons/20/location
+Content-Type: application/json
+
+{"latitude": -36.717300, "longitude": 174.735800}
+
+### Remember to change the IDs below to match the created persons
+PUT http://localhost:8080/api/v1/persons/21/location
+Content-Type: application/json
+
+{"latitude": -36.717250, "longitude": 174.735850}
+
+### Create people near Albany, Northshore
+POST http://localhost:8080/api/v1/persons
+Content-Type: application/json
+
+{"name": "Dave Albany"}
+
+###
+POST http://localhost:8080/api/v1/persons
+Content-Type: application/json
+
+{"name": "Eve Albany"}
+
+### Remember to change the IDs below to match the created persons
+PUT http://localhost:8080/api/v1/persons/22/location
+Content-Type: application/json
+
+{"latitude": -36.72789864941169, "longitude": 174.71023398191028}
+
+### Remember to change the IDs below to match the created persons
+PUT http://localhost:8080/api/v1/persons/23/location
+Content-Type: application/json
+
+{"latitude": -36.727900, "longitude": 174.710200}
+
+### Find people near Sherwood Reserve (should only return Sherwood people with radius 2.6km)
+### Albany to Sherwood Reserve is about 2.6km
+GET http://localhost:8080/api/v1/persons/nearby?lat=-36.71728717024384&lon=174.73580751020845&radiusKm=2.5
+
+### Find people near Albany Northshore (should return all Sherwood people with radius 2.6km)
+GET http://localhost:8080/api/v1/persons/nearby?lat=-36.7172871702&lon=174.710233&radiusKm=2.8

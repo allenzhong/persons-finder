@@ -6,15 +6,15 @@ import com.persons.finder.presentation.dto.response.PersonResponseDto
 
 object PersonMapper {
     
-    fun toDomain(createPersonRequestDto: CreatePersonRequestDto): Person {
+    fun toDomain(dto: CreatePersonRequestDto): Person {
         return Person(
-            name = createPersonRequestDto.name
+            name = dto.name
         )
     }
     
     fun toResponseDto(person: Person): PersonResponseDto {
         return PersonResponseDto(
-            id = person.id ?: 0L,
+            id = person.id,
             name = person.name
         )
     }
