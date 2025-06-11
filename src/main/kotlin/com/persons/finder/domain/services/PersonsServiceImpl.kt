@@ -3,13 +3,14 @@ package com.persons.finder.domain.services
 import com.persons.finder.domain.models.Person
 import com.persons.finder.infrastructure.repositories.PersonRepository
 import com.persons.finder.presentation.exceptions.PersonNotFoundException
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
-class PersonsServiceImpl(
-    private val personRepository: PersonRepository
-) : PersonsService {
+class PersonsServiceImpl : PersonsService {
+    @Autowired
+    internal lateinit var personRepository: PersonRepository
 
     override fun getById(id: Long): Person {
         return personRepository.findByIdOrNull(id) 

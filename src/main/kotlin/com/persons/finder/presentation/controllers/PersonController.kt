@@ -4,6 +4,7 @@ import com.persons.finder.domain.services.LocationsService
 import com.persons.finder.domain.services.PersonsService
 import com.persons.finder.domain.models.Location
 import com.persons.finder.domain.utils.DistanceCalculator
+import com.persons.finder.application.usecases.CreatePersonUseCase
 import com.persons.finder.presentation.dto.mapper.LocationMapper
 import com.persons.finder.presentation.dto.mapper.PersonMapper
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
@@ -23,15 +24,19 @@ import javax.validation.constraints.Min
 
 @RestController
 @RequestMapping("api/v1/persons")
-class PersonController @Autowired constructor(
-    private val personsService: PersonsService,
-    private val locationsService: LocationsService
-) {
+class PersonController {
+    @Autowired
+    internal lateinit var personsService: PersonsService
+
+    @Autowired
+    internal lateinit var locationsService: LocationsService
+
+    @Autowired
+    internal lateinit var createPersonUseCase: CreatePersonUseCase
+
     @PostMapping("")
     fun createPerson(@Valid @RequestBody createPersonRequestDto: CreatePersonRequestDto): ResponseEntity<PersonResponseDto> {
-        val person = PersonMapper.toDomain(createPersonRequestDto)
-        val createdPerson = personsService.save(person)
-        val response = PersonMapper.toResponseDto(createdPerson)
+        val response = createPersonUseCase.execute(createPersonRequestDto)
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 

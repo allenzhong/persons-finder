@@ -15,20 +15,6 @@ interface LocationRepository : Repository<Location, Long> {
     fun findAll(): List<Location>
     
     @Query("""
-        SELECT l.*, p.id as person_id, p.name as person_name 
-        FROM LOCATIONS l 
-        JOIN PERSONS p ON l.reference_id = p.id 
-        WHERE l.latitude BETWEEN :minLat AND :maxLat 
-        AND l.longitude BETWEEN :minLon AND :maxLon
-    """)
-    fun findLocationsWithPersonsInBoundingBox(
-        @Param("minLat") minLat: Double,
-        @Param("maxLat") maxLat: Double,
-        @Param("minLon") minLon: Double,
-        @Param("maxLon") maxLon: Double
-    ): List<LocationWithPerson>
-    
-    @Query("""
         SELECT * FROM LOCATIONS 
         WHERE latitude BETWEEN :minLat AND :maxLat 
         AND longitude BETWEEN :minLon AND :maxLon
@@ -56,11 +42,3 @@ interface LocationRepository : Repository<Location, Long> {
         @Param("longitude") longitude: Double
     )
 }
-
-data class LocationWithPerson(
-    val referenceId: Long,
-    val latitude: Double,
-    val longitude: Double,
-    val personId: Long,
-    val personName: String
-) 

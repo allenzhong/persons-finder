@@ -4,12 +4,13 @@ import com.persons.finder.domain.models.Location
 import com.persons.finder.domain.models.Person
 import com.persons.finder.domain.utils.DistanceCalculator
 import com.persons.finder.infrastructure.repositories.LocationRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class LocationsServiceImpl(
-    private val locationRepository: LocationRepository
-) : LocationsService {
+class LocationsServiceImpl : LocationsService {
+    @Autowired
+    internal lateinit var locationRepository: LocationRepository
 
     override fun addLocation(location: Location) {
         val existingLocation = locationRepository.findByReferenceId(location.referenceId)

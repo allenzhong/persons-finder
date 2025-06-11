@@ -25,7 +25,8 @@ class PersonsServiceImplTest {
     @BeforeEach
     fun setUp() {
         // Initialize the service with the mocked repository
-        personsService = PersonsServiceImpl(personRepository)
+        personsService = PersonsServiceImpl()
+        personsService.personRepository = personRepository
     }
 
     @Test

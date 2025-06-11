@@ -22,7 +22,8 @@ class LocationsServiceImplTest {
 
     @BeforeEach
     fun setUp() {
-        locationsService = LocationsServiceImpl(locationRepository)
+        locationsService = LocationsServiceImpl()
+        locationsService.locationRepository = locationRepository
     }
 
     @Test

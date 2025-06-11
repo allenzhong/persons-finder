@@ -1,8 +1,11 @@
 package com.persons.finder.presentation.controllers
 
+import com.persons.finder.domain.models.Location
 import com.persons.finder.domain.models.Person
 import com.persons.finder.domain.services.LocationsService
 import com.persons.finder.domain.services.PersonsService
+import com.persons.finder.application.usecases.CreatePersonUseCase
+import com.persons.finder.domain.utils.DistanceCalculator
 import com.persons.finder.presentation.dto.mapper.LocationMapper
 import com.persons.finder.presentation.dto.mapper.PersonMapper
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
@@ -12,22 +15,20 @@ import com.persons.finder.presentation.dto.response.PersonResponseDto
 import com.persons.finder.presentation.exceptions.PersonNotFoundException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import org.mockito.kotlin.any
-import org.mockito.kotlin.whenever
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.never
-import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertTrue
-import com.persons.finder.domain.models.Location
-import com.persons.finder.domain.utils.DistanceCalculator
 
 @ExtendWith(MockitoExtension::class)
 class PersonControllerTest {
@@ -38,20 +39,28 @@ class PersonControllerTest {
     @Mock
     private lateinit var locationsService: LocationsService
 
+    @Mock
+    private lateinit var createPersonUseCase: CreatePersonUseCase
+
     private lateinit var personController: PersonController
 
     @BeforeEach
     fun setUp() {
-        personController = PersonController(personsService, locationsService)
+        personController = PersonController()
+        personController.apply {
+            this.personsService = this@PersonControllerTest.personsService
+            this.locationsService = this@PersonControllerTest.locationsService
+            this.createPersonUseCase = this@PersonControllerTest.createPersonUseCase
+        }
     }
 
     @Test
     fun `createPerson should return 201 Created`() {
         // Given
         val createPersonRequestDto = CreatePersonRequestDto(name = "Allen")
-        val expectedPerson = Person(name = "Allen", id = 1L)
+        val expectedResponse = PersonResponseDto(id = 1L, name = "Allen")
 
-        whenever(personsService.save(any())).thenReturn(expectedPerson)
+        whenever(createPersonUseCase.execute(createPersonRequestDto)).thenReturn(expectedResponse)
 
         // When
         val response: ResponseEntity<PersonResponseDto> = personController.createPerson(createPersonRequestDto)
@@ -62,19 +71,18 @@ class PersonControllerTest {
         assertEquals(201, response.statusCodeValue)
         val responseBody = response.body
         assertNotNull(responseBody)
-        assertEquals(expectedPerson.id, responseBody.id)
-        assertEquals(expectedPerson.name, responseBody.name)
-        Mockito.verify(personsService).save(any())
+        assertEquals(expectedResponse.id, responseBody.id)
+        assertEquals(expectedResponse.name, responseBody.name)
+        verify(createPersonUseCase).execute(createPersonRequestDto)
     }
 
     @Test
-    fun `createPerson should call service with correct person object`() {
+    fun `createPerson should call useCase with correct person object`() {
         // Given
         val createPersonRequestDto = CreatePersonRequestDto(name = "Test Person")
-        val expectedPerson = Person(name = "Test Person", id = 1L)
-        val expectedDomainPerson = PersonMapper.toDomain(createPersonRequestDto)
+        val expectedResponse = PersonResponseDto(id = 1L, name = "Test Person")
 
-        whenever(personsService.save(expectedDomainPerson)).thenReturn(expectedPerson)
+        whenever(createPersonUseCase.execute(createPersonRequestDto)).thenReturn(expectedResponse)
 
         // When
         val response = personController.createPerson(createPersonRequestDto)
@@ -84,9 +92,9 @@ class PersonControllerTest {
         assertEquals(HttpStatus.CREATED, response.statusCode)
         val responseBody = response.body
         assertNotNull(responseBody)
-        assertEquals(expectedPerson.id, responseBody.id)
-        assertEquals(expectedPerson.name, responseBody.name)
-        Mockito.verify(personsService).save(expectedDomainPerson)
+        assertEquals(expectedResponse.id, responseBody.id)
+        assertEquals(expectedResponse.name, responseBody.name)
+        verify(createPersonUseCase).execute(createPersonRequestDto)
     }
 
     @Test
