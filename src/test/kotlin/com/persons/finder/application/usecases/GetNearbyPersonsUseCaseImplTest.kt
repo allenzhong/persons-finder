@@ -1,9 +1,7 @@
 package com.persons.finder.application.usecases
 
-import com.persons.finder.domain.models.Location
-import com.persons.finder.domain.models.Person
 import com.persons.finder.domain.services.LocationsService
-import com.persons.finder.domain.services.PersonsService
+import com.persons.finder.infrastructure.repositories.dto.PersonLocationDto
 import com.persons.finder.presentation.dto.response.PersonWithDistanceResponseDto
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -21,35 +19,29 @@ class GetNearbyPersonsUseCaseImplTest {
     @Mock
     private lateinit var locationsService: LocationsService
 
-    @Mock
-    private lateinit var personsService: PersonsService
-
     private lateinit var getNearbyPersonsUseCase: GetNearbyPersonsUseCaseImpl
 
     @BeforeEach
     fun setUp() {
         getNearbyPersonsUseCase = GetNearbyPersonsUseCaseImpl()
-        getNearbyPersonsUseCase.apply {
-            this.locationsService = this@GetNearbyPersonsUseCaseImplTest.locationsService
-            this.personsService = this@GetNearbyPersonsUseCaseImplTest.personsService
-        }
+        getNearbyPersonsUseCase.locationsService = locationsService
     }
 
     @Test
-    fun `execute should return empty list when no locations found`() {
+    fun `execute should return empty list when no persons found`() {
         // Given
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 10.0
 
-        whenever(locationsService.findAround(lat, lon, radiusKm)).thenReturn(emptyList())
+        whenever(locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm)).thenReturn(emptyList())
 
         // When
         val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
 
         // Then
         assertTrue(result.isEmpty())
-        verify(locationsService).findAround(lat, lon, radiusKm)
+        verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
     }
 
     @Test
@@ -59,30 +51,27 @@ class GetNearbyPersonsUseCaseImplTest {
         val lon = -74.0060
         val radiusKm = 10.0
 
-        val nearbyLocation = Location(
-            referenceId = 1L,
+        val nearbyPersonLocation = PersonLocationDto(
+            personId = 1L,
+            personName = "Nearby Person",
             latitude = 40.7129,
             longitude = -74.0061
         )
 
-        val farLocation = Location(
-            referenceId = 2L,
+        val farPersonLocation = PersonLocationDto(
+            personId = 2L,
+            personName = "Far Person",
             latitude = 40.7138,
             longitude = -74.0070
         )
 
-        val nearbyPerson = Person(name = "Nearby Person", id = 1L)
-        val farPerson = Person(name = "Far Person", id = 2L)
-
-        whenever(locationsService.findAround(lat, lon, radiusKm))
-            .thenReturn(listOf(nearbyLocation, farLocation))
-        whenever(personsService.getByIds(listOf(1L, 2L)))
-            .thenReturn(listOf(nearbyPerson, farPerson))
+        whenever(locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm))
+            .thenReturn(listOf(nearbyPersonLocation, farPersonLocation))
         
         // Mock distance calculations
-        whenever(locationsService.calculateDistance(lat, lon, nearbyLocation.latitude, nearbyLocation.longitude))
+        whenever(locationsService.calculateDistance(lat, lon, nearbyPersonLocation.latitude, nearbyPersonLocation.longitude))
             .thenReturn(0.5) // Nearby person is 0.5km away
-        whenever(locationsService.calculateDistance(lat, lon, farLocation.latitude, farLocation.longitude))
+        whenever(locationsService.calculateDistance(lat, lon, farPersonLocation.latitude, farPersonLocation.longitude))
             .thenReturn(2.0) // Far person is 2.0km away
 
         // When
@@ -93,44 +82,46 @@ class GetNearbyPersonsUseCaseImplTest {
         assertEquals("Nearby Person", result[0].person.name)
         assertEquals("Far Person", result[1].person.name)
         assertTrue(result[0].distanceKm < result[1].distanceKm)
-        verify(locationsService).findAround(lat, lon, radiusKm)
-        verify(personsService).getByIds(listOf(1L, 2L))
+        verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
     }
 
     @Test
-    fun `execute should filter out locations with missing persons`() {
+    fun `execute should filter out persons outside radius`() {
         // Given
         val lat = 40.7128
         val lon = -74.0060
-        val radiusKm = 10.0
+        val radiusKm = 5.0 // Small radius
 
-        val locationWithPerson = Location(
-            referenceId = 1L,
+        val nearbyPersonLocation = PersonLocationDto(
+            personId = 1L,
+            personName = "Nearby Person",
             latitude = 40.7129,
             longitude = -74.0061
         )
 
-        val locationWithoutPerson = Location(
-            referenceId = 999L, // Non-existent person
-            latitude = 40.7130,
-            longitude = -74.0062
+        val farPersonLocation = PersonLocationDto(
+            personId = 2L,
+            personName = "Far Person",
+            latitude = 40.7138,
+            longitude = -74.0070
         )
 
-        val person = Person(name = "Test Person", id = 1L)
-
-        whenever(locationsService.findAround(lat, lon, radiusKm))
-            .thenReturn(listOf(locationWithPerson, locationWithoutPerson))
-        whenever(personsService.getByIds(listOf(1L, 999L)))
-            .thenReturn(listOf(person)) // Only person 1 exists
+        whenever(locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm))
+            .thenReturn(listOf(nearbyPersonLocation, farPersonLocation))
+        
+        // Mock distance calculations - one within radius, one outside
+        whenever(locationsService.calculateDistance(lat, lon, nearbyPersonLocation.latitude, nearbyPersonLocation.longitude))
+            .thenReturn(3.0) // Within 5km radius
+        whenever(locationsService.calculateDistance(lat, lon, farPersonLocation.latitude, farPersonLocation.longitude))
+            .thenReturn(7.0) // Outside 5km radius
 
         // When
         val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
 
         // Then
-        assertEquals(1, result.size) // Only the person that exists
-        assertEquals("Test Person", result[0].person.name)
-        verify(locationsService).findAround(lat, lon, radiusKm)
-        verify(personsService).getByIds(listOf(1L, 999L))
+        assertEquals(1, result.size) // Only the nearby person
+        assertEquals("Nearby Person", result[0].person.name)
+        verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
     }
 
     @Test
@@ -140,18 +131,15 @@ class GetNearbyPersonsUseCaseImplTest {
         val lon = 0.0
         val radiusKm = 100.0
 
-        val location = Location(
-            referenceId = 1L,
+        val personLocation = PersonLocationDto(
+            personId = 1L,
+            personName = "Test Person",
             latitude = 0.5, // Approximately 55km from (0,0)
             longitude = 0.5
         )
 
-        val person = Person(name = "Test Person", id = 1L)
-
-        whenever(locationsService.findAround(lat, lon, radiusKm))
-            .thenReturn(listOf(location))
-        whenever(personsService.getByIds(listOf(1L)))
-            .thenReturn(listOf(person))
+        whenever(locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm))
+            .thenReturn(listOf(personLocation))
 
         // When
         val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
@@ -160,8 +148,7 @@ class GetNearbyPersonsUseCaseImplTest {
         assertEquals(1, result.size)
         val expectedDistance = locationsService.calculateDistance(0.0, 0.0, 0.5, 0.5)
         assertEquals(expectedDistance, result[0].distanceKm, 0.001)
-        verify(locationsService).findAround(lat, lon, radiusKm)
-        verify(personsService).getByIds(listOf(1L))
+        verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
     }
 
     @Test
@@ -171,7 +158,7 @@ class GetNearbyPersonsUseCaseImplTest {
         val lon = -180.0
         val radiusKm = 1.0
 
-        whenever(locationsService.findAround(lat, lon, radiusKm))
+        whenever(locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm))
             .thenReturn(emptyList())
 
         // When
@@ -179,7 +166,7 @@ class GetNearbyPersonsUseCaseImplTest {
 
         // Then
         assertTrue(result.isEmpty())
-        verify(locationsService).findAround(lat, lon, radiusKm)
+        verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
     }
 
     @Test
@@ -189,7 +176,7 @@ class GetNearbyPersonsUseCaseImplTest {
         val lon = -74.0060
         val radiusKm = 1000.0
 
-        whenever(locationsService.findAround(lat, lon, radiusKm))
+        whenever(locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm))
             .thenReturn(emptyList())
 
         // When
@@ -197,24 +184,6 @@ class GetNearbyPersonsUseCaseImplTest {
 
         // Then
         assertTrue(result.isEmpty())
-        verify(locationsService).findAround(lat, lon, radiusKm)
-    }
-
-    @Test
-    fun `execute should handle minimum radius`() {
-        // Given
-        val lat = 40.7128
-        val lon = -74.0060
-        val radiusKm = 0.1
-
-        whenever(locationsService.findAround(lat, lon, radiusKm))
-            .thenReturn(emptyList())
-
-        // When
-        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
-
-        // Then
-        assertTrue(result.isEmpty())
-        verify(locationsService).findAround(lat, lon, radiusKm)
+        verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
     }
 } 

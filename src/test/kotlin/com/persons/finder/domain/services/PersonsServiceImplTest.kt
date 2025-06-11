@@ -2,8 +2,10 @@ package com.persons.finder.domain.services
 
 import com.persons.finder.domain.models.Person
 import com.persons.finder.infrastructure.repositories.PersonRepository
+import com.persons.finder.presentation.exceptions.PersonNotFoundException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -11,8 +13,11 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.data.repository.findByIdOrNull
+import java.util.Optional
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @ExtendWith(MockitoExtension::class)
 class PersonsServiceImplTest {
@@ -153,6 +158,63 @@ class PersonsServiceImplTest {
     }
 
     @Test
+    fun `getById should return person when found`() {
+        // Given
+        val personId = 1L
+        val person = Person(name = "John Doe", id = personId)
+        whenever(personRepository.findById(personId)).thenReturn(Optional.of(person))
+
+        // When
+        val result = personsService.getById(personId)
+
+        // Then
+        assertEquals(person, result)
+        verify(personRepository).findById(personId)
+    }
+
+    @Test
+    fun `getById should throw PersonNotFoundException when person not found`() {
+        // Given
+        val personId = 999L
+        whenever(personRepository.findById(personId)).thenReturn(Optional.empty())
+
+        // When & Then
+        assertThrows<PersonNotFoundException> {
+            personsService.getById(personId)
+        }
+        verify(personRepository).findById(personId)
+    }
+
+    @Test
+    fun `save should return saved person`() {
+        // Given
+        val personToSave = Person(name = "Jane Doe", id = null)
+        val savedPerson = Person(name = "Jane Doe", id = 2L)
+        whenever(personRepository.save(personToSave)).thenReturn(savedPerson)
+
+        // When
+        val result = personsService.save(personToSave)
+
+        // Then
+        assertEquals(savedPerson, result)
+        verify(personRepository).save(personToSave)
+    }
+
+    @Test
+    fun `save should handle person with existing id`() {
+        // Given
+        val personToSave = Person(name = "Existing Person", id = 3L)
+        whenever(personRepository.save(personToSave)).thenReturn(personToSave)
+
+        // When
+        val result = personsService.save(personToSave)
+
+        // Then
+        assertEquals(personToSave, result)
+        verify(personRepository).save(personToSave)
+    }
+
+    @Test
     fun `getByIds should return list of persons when all ids exist`() {
         // Given - Mock the repository behavior
         val person1 = Person(name = "John Doe", id = 1L)
@@ -240,6 +302,57 @@ class PersonsServiceImplTest {
         assertEquals(person, result[0])
 
         // Verify repository was called once with the id
+        verify(personRepository).findByIds(ids)
+    }
+
+    @Test
+    fun `getByIds should return empty list when ids list is empty`() {
+        // Given
+        val emptyIds = emptyList<Long>()
+
+        // When
+        val result = personsService.getByIds(emptyIds)
+
+        // Then
+        assertTrue(result.isEmpty())
+        // Should not call repository when ids list is empty
+    }
+
+    @Test
+    fun `getByIds should return persons when ids list is not empty`() {
+        // Given
+        val ids = listOf(1L, 2L, 3L)
+        val persons = listOf(
+            Person(name = "Person 1", id = 1L),
+            Person(name = "Person 2", id = 2L),
+            Person(name = "Person 3", id = 3L)
+        )
+        whenever(personRepository.findByIds(ids)).thenReturn(persons)
+
+        // When
+        val result = personsService.getByIds(ids)
+
+        // Then
+        assertEquals(persons, result)
+        verify(personRepository).findByIds(ids)
+    }
+
+    @Test
+    fun `getByIds should handle partial results`() {
+        // Given
+        val ids = listOf(1L, 2L, 999L)
+        val persons = listOf(
+            Person(name = "Person 1", id = 1L),
+            Person(name = "Person 2", id = 2L)
+        )
+        whenever(personRepository.findByIds(ids)).thenReturn(persons)
+
+        // When
+        val result = personsService.getByIds(ids)
+
+        // Then
+        assertEquals(persons, result)
+        assertEquals(2, result.size)
         verify(personRepository).findByIds(ids)
     }
 }

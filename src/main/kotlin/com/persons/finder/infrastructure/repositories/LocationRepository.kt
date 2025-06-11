@@ -1,6 +1,7 @@
 package com.persons.finder.infrastructure.repositories
 
 import com.persons.finder.domain.models.Location
+import com.persons.finder.infrastructure.repositories.dto.PersonLocationDto
 import org.springframework.data.jdbc.repository.query.Modifying
 import org.springframework.data.jdbc.repository.query.Query
 import org.springframework.data.repository.Repository
@@ -15,16 +16,22 @@ interface LocationRepository : Repository<Location, Long> {
     fun findAll(): List<Location>
     
     @Query("""
-        SELECT * FROM LOCATIONS 
-        WHERE latitude BETWEEN :minLat AND :maxLat 
-        AND longitude BETWEEN :minLon AND :maxLon
+        SELECT 
+            p.id AS "personId",
+            p.name AS "personName",
+            l.latitude,
+            l.longitude
+        FROM PERSONS p
+        INNER JOIN LOCATIONS l ON p.id = l.reference_id
+        WHERE l.latitude BETWEEN :minLat AND :maxLat 
+        AND l.longitude BETWEEN :minLon AND :maxLon
     """)
-    fun findLocationsInBoundingBox(
+    fun findPersonsWithLocationsInBoundingBox(
         @Param("minLat") minLat: Double,
         @Param("maxLat") maxLat: Double,
         @Param("minLon") minLon: Double,
         @Param("maxLon") maxLon: Double
-    ): List<Location>
+    ): List<PersonLocationDto>
     
     @Modifying
     @Query("INSERT INTO LOCATIONS (reference_id, latitude, longitude) VALUES (:referenceId, :latitude, :longitude)")

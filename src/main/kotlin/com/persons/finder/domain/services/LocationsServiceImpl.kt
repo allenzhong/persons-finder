@@ -4,6 +4,7 @@ import com.persons.finder.domain.models.Location
 import com.persons.finder.domain.models.Person
 import com.persons.finder.infrastructure.config.GeoConfig
 import com.persons.finder.infrastructure.repositories.LocationRepository
+import com.persons.finder.infrastructure.repositories.dto.PersonLocationDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import kotlin.math.*
@@ -34,16 +35,13 @@ class LocationsServiceImpl : LocationsService {
         TODO("Not yet implemented")
     }
 
-    /**
-     * Returns a list of raw Location objects within the bounding box of the specified coordinates.
-     * This method does NOT perform distance calculations or filtering - that should be done in the use case layer.
-     */
-    override fun findAround(latitude: Double, longitude: Double, radiusInKm: Double): List<Location> {
+
+    override fun findPersonsWithLocationsAround(latitude: Double, longitude: Double, radiusInKm: Double): List<PersonLocationDto> {
         // Calculate bounding box for efficient filtering
         val boundingBox = calculateBoundingBox(latitude, longitude, radiusInKm)
         
-        // Get locations within the bounding box
-        return locationRepository.findLocationsInBoundingBox(
+        // Get persons with locations within the bounding box using join query
+        return locationRepository.findPersonsWithLocationsInBoundingBox(
             minLat = boundingBox.minLat,
             maxLat = boundingBox.maxLat,
             minLon = boundingBox.minLon,
