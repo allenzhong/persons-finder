@@ -21,4 +21,12 @@ class PersonsServiceImpl(
     override fun createPerson(person: Person): Person {
         return personRepository.save(person)
     }
+
+    override fun getByIds(ids: List<Long>): List<Person> {
+        return if (ids.isEmpty()) {
+            emptyList()
+        } else {
+            personRepository.findByIds(ids)
+        }
+    }
 }

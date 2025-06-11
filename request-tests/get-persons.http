@@ -1,0 +1,29 @@
+### Persons Finder API - GET Persons (Simple Tests)
+
+@baseUrl = http://localhost:8080/api/v1
+
+### Get Single Person
+GET {{baseUrl}}/persons?id=1
+
+### Get Multiple Persons
+GET {{baseUrl}}/persons?id=1&id=2&id=3
+
+### Get Persons with Mixed Existing/Non-existing IDs
+GET {{baseUrl}}/persons?id=1&id=999&id=2&id=1000&id=3
+
+### Get Non-existing Persons (Should return empty array)
+GET {{baseUrl}}/persons?id=999&id=1000
+
+### Get with No Parameters (Should return 400 Bad Request)
+GET {{baseUrl}}/persons
+
+### Create Test Data First
+POST {{baseUrl}}/persons
+Content-Type: application/json
+
+{
+  "name": "John Doe"
+}
+
+### Then Get the Created Person (replace ID with actual response)
+GET {{baseUrl}}/persons?id=19 

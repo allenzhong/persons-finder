@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -148,5 +149,96 @@ class PersonsServiceImplTest {
 
         // Verify repository was called
         verify(personRepository).save(inputPerson)
+    }
+
+    @Test
+    fun `getByIds should return list of persons when all ids exist`() {
+        // Given - Mock the repository behavior
+        val person1 = Person(name = "John Doe", id = 1L)
+        val person2 = Person(name = "Jane Smith", id = 2L)
+        val person3 = Person(name = "Bob Wilson", id = 3L)
+        val ids = listOf(1L, 2L, 3L)
+
+        whenever(personRepository.findByIds(ids)).thenReturn(listOf(person1, person2, person3))
+
+        // When - Call the service method
+        val result = personsService.getByIds(ids)
+
+        // Then - Verify the result and repository interaction
+        assertEquals(3, result.size)
+        assertEquals(person1, result[0])
+        assertEquals(person2, result[1])
+        assertEquals(person3, result[2])
+
+        // Verify repository was called once with all ids
+        verify(personRepository).findByIds(ids)
+    }
+
+    @Test
+    fun `getByIds should return only existing persons when some ids do not exist`() {
+        // Given - Mock the repository behavior
+        val person1 = Person(name = "John Doe", id = 1L)
+        val person3 = Person(name = "Bob Wilson", id = 3L)
+        val ids = listOf(1L, 2L, 3L)
+
+        whenever(personRepository.findByIds(ids)).thenReturn(listOf(person1, person3))
+
+        // When - Call the service method
+        val result = personsService.getByIds(ids)
+
+        // Then - Verify the result and repository interaction
+        assertEquals(2, result.size)
+        assertEquals(person1, result[0])
+        assertEquals(person3, result[1])
+
+        // Verify repository was called once with all ids
+        verify(personRepository).findByIds(ids)
+    }
+
+    @Test
+    fun `getByIds should return empty list when no ids exist`() {
+        // Given - Mock the repository behavior
+        val ids = listOf(1L, 2L)
+        whenever(personRepository.findByIds(ids)).thenReturn(emptyList())
+
+        // When - Call the service method
+        val result = personsService.getByIds(ids)
+
+        // Then - Verify the result and repository interaction
+        assertEquals(0, result.size)
+
+        // Verify repository was called once with all ids
+        verify(personRepository).findByIds(ids)
+    }
+
+    @Test
+    fun `getByIds should return empty list when empty ids list is provided`() {
+        // When - Call the service method
+        val result = personsService.getByIds(emptyList())
+
+        // Then - Verify the result
+        assertEquals(0, result.size)
+
+        // Verify repository was not called
+        verify(personRepository, times(0)).findByIds(any())
+    }
+
+    @Test
+    fun `getByIds should handle single id`() {
+        // Given - Mock the repository behavior
+        val person = Person(name = "Single Person", id = 1L)
+        val ids = listOf(1L)
+
+        whenever(personRepository.findByIds(ids)).thenReturn(listOf(person))
+
+        // When - Call the service method
+        val result = personsService.getByIds(ids)
+
+        // Then - Verify the result and repository interaction
+        assertEquals(1, result.size)
+        assertEquals(person, result[0])
+
+        // Verify repository was called once with the id
+        verify(personRepository).findByIds(ids)
     }
 }
