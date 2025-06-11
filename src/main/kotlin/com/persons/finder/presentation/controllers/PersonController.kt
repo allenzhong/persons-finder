@@ -6,6 +6,7 @@ import com.persons.finder.domain.models.Location
 import com.persons.finder.domain.utils.DistanceCalculator
 import com.persons.finder.application.usecases.CreatePersonUseCase
 import com.persons.finder.application.usecases.GetPersonsByIdsUseCase
+import com.persons.finder.application.usecases.UpdatePersonLocationUseCase
 import com.persons.finder.presentation.dto.mapper.LocationMapper
 import com.persons.finder.presentation.dto.mapper.PersonMapper
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
@@ -38,6 +39,9 @@ class PersonController {
     @Autowired
     internal lateinit var getPersonsByIdsUseCase: GetPersonsByIdsUseCase
 
+    @Autowired
+    internal lateinit var updatePersonLocationUseCase: UpdatePersonLocationUseCase
+
     @PostMapping("")
     fun createPerson(@Valid @RequestBody createPersonRequestDto: CreatePersonRequestDto): ResponseEntity<PersonResponseDto> {
         val response = createPersonUseCase.execute(createPersonRequestDto)
@@ -55,14 +59,7 @@ class PersonController {
         @PathVariable id: Long,
         @Valid @RequestBody updateLocationRequestDto: UpdateLocationRequestDto
     ): ResponseEntity<LocationResponseDto> {
-        // First verify the person exists
-        personsService.getById(id)
-        
-        // Create or update the location
-        val location = LocationMapper.toDomain(id, updateLocationRequestDto)
-        locationsService.addLocation(location)
-        
-        val response = LocationMapper.toResponseDto(location)
+        val response = updatePersonLocationUseCase.execute(id, updateLocationRequestDto)
         return ResponseEntity.ok(response)
     }
 
