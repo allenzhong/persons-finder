@@ -27,7 +27,7 @@ class LocationsServiceImplTest {
     }
 
     @Test
-    fun `findAround should return empty list when no locations in radius`() {
+    fun `findAround should return empty list when no locations in bounding box`() {
         // Given
         val lat = 40.7128
         val lon = -74.0060
@@ -46,7 +46,7 @@ class LocationsServiceImplTest {
     }
 
     @Test
-    fun `findAround should return locations within radius sorted by distance`() {
+    fun `findAround should return all locations within bounding box`() {
         // Given
         val centerLat = 40.7128
         val centerLon = -74.0060
@@ -54,13 +54,13 @@ class LocationsServiceImplTest {
 
         val nearbyLocation = Location(
             referenceId = 1L,
-            latitude = 40.7129, // Very close
+            latitude = 40.7129,
             longitude = -74.0061
         )
 
         val farLocation = Location(
             referenceId = 2L,
-            latitude = 40.7138, // Further away
+            latitude = 40.7138,
             longitude = -74.0070
         )
 
@@ -74,68 +74,9 @@ class LocationsServiceImplTest {
 
         // Then
         assertEquals(2, result.size)
-        assertEquals(1L, result[0].referenceId)
-        assertEquals(2L, result[1].referenceId)
-        // The first location should be closer (smaller distance)
-        assertTrue(result[0].latitude > result[1].latitude || result[0].longitude > result[1].longitude)
-    }
-
-    @Test
-    fun `findAround should filter out locations outside radius`() {
-        // Given
-        val centerLat = 40.7128
-        val centerLon = -74.0060
-        val radiusKm = 1.0 // Small radius
-
-        val nearbyLocation = Location(
-            referenceId = 1L,
-            latitude = 40.7129, // Within 1km
-            longitude = -74.0061
-        )
-
-        val farLocation = Location(
-            referenceId = 2L,
-            latitude = 40.7228, // Much further away (>1km)
-            longitude = -74.0060
-        )
-
-        whenever(locationRepository.findLocationsInBoundingBox(
-            any<Double>(), any<Double>(), any<Double>(), any<Double>())
-        )
-            .thenReturn(listOf(nearbyLocation, farLocation))
-
-        // When
-        val result = locationsService.findAround(centerLat, centerLon, radiusKm)
-
-        // Then
-        assertEquals(1, result.size)
-        assertEquals(1L, result[0].referenceId)
-    }
-
-    @Test
-    fun `findAround should handle exact distance calculations`() {
-        // Given
-        val centerLat = 0.0
-        val centerLon = 0.0
-        val radiusKm = 100.0
-
-        val locationAtExactDistance = Location(
-            referenceId = 1L,
-            latitude = 0.899, // Approximately 100km away (0.899 degrees ≈ 100km)
-            longitude = 0.0
-        )
-
-        whenever(locationRepository.findLocationsInBoundingBox(
-            any<Double>(), any<Double>(), any<Double>(), any<Double>())
-        )
-            .thenReturn(listOf(locationAtExactDistance))
-
-        // When
-        val result = locationsService.findAround(centerLat, centerLon, radiusKm)
-
-        // Then
-        assertEquals(1, result.size)
-        assertEquals(1L, result[0].referenceId)
+        // Service should return all locations from repository without filtering or sorting
+        assertTrue(result.any { it.referenceId == 1L })
+        assertTrue(result.any { it.referenceId == 2L })
     }
 
     @Test

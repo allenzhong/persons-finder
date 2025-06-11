@@ -2,10 +2,11 @@ package com.persons.finder.domain.services
 
 import com.persons.finder.domain.models.Location
 import com.persons.finder.domain.models.Person
-import com.persons.finder.domain.utils.DistanceCalculator
+import com.persons.finder.infrastructure.config.GeoConfig
 import com.persons.finder.infrastructure.repositories.LocationRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import kotlin.math.*
 
 @Service
 class LocationsServiceImpl : LocationsService {
@@ -34,40 +35,40 @@ class LocationsServiceImpl : LocationsService {
     }
 
     /**
-     * Returns a list of raw Location objects within the given radius of the specified coordinates.
-     * This method does NOT perform any mapping or DTO conversion. Mapping should be done in the controller.
+     * Returns a list of raw Location objects within the bounding box of the specified coordinates.
+     * This method does NOT perform distance calculations or filtering - that should be done in the use case layer.
      */
     override fun findAround(latitude: Double, longitude: Double, radiusInKm: Double): List<Location> {
         // Calculate bounding box for efficient filtering
-        val boundingBox = DistanceCalculator.calculateBoundingBox(latitude, longitude, radiusInKm)
+        val boundingBox = calculateBoundingBox(latitude, longitude, radiusInKm)
         
         // Get locations within the bounding box
-        val locations = locationRepository.findLocationsInBoundingBox(
+        return locationRepository.findLocationsInBoundingBox(
             minLat = boundingBox.minLat,
             maxLat = boundingBox.maxLat,
             minLon = boundingBox.minLon,
             maxLon = boundingBox.maxLon
         )
-        
-        // Calculate exact distances and filter by radius, then sort by distance
-        return locations
-            .map { location ->
-                val distance = DistanceCalculator.calculateDistance(
-                    lat1 = latitude,
-                    lon1 = longitude,
-                    lat2 = location.latitude,
-                    lon2 = location.longitude
-                )
-                
-                LocationWithDistance(location, distance)
-            }
-            .filter { it.distanceKm <= radiusInKm }
-            .sortedBy { it.distanceKm }
-            .map { it.location }
+    }
+
+    override fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+                sin(dLon / 2) * sin(dLon / 2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return GeoConfig.EARTH_RADIUS_KM * c
+    }
+
+    override fun calculateBoundingBox(centerLat: Double, centerLon: Double, radiusKm: Double): BoundingBox {
+        val latDelta = radiusKm / 111.0
+        val lonDelta = radiusKm / (111.0 * cos(Math.toRadians(centerLat)))
+        return BoundingBox(
+            minLat = centerLat - latDelta,
+            maxLat = centerLat + latDelta,
+            minLon = centerLon - lonDelta,
+            maxLon = centerLon + lonDelta
+        )
     }
 }
-
-data class LocationWithDistance(
-    val location: Location,
-    val distanceKm: Double
-)

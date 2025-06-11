@@ -3,10 +3,10 @@ package com.persons.finder.presentation.controllers
 import com.persons.finder.domain.services.LocationsService
 import com.persons.finder.domain.services.PersonsService
 import com.persons.finder.domain.models.Location
-import com.persons.finder.domain.utils.DistanceCalculator
 import com.persons.finder.application.usecases.CreatePersonUseCase
 import com.persons.finder.application.usecases.GetPersonsByIdsUseCase
 import com.persons.finder.application.usecases.UpdatePersonLocationUseCase
+import com.persons.finder.application.usecases.GetNearbyPersonsUseCase
 import com.persons.finder.presentation.dto.mapper.LocationMapper
 import com.persons.finder.presentation.dto.mapper.PersonMapper
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
@@ -17,6 +17,7 @@ import com.persons.finder.presentation.dto.response.PersonWithDistanceResponseDt
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import javax.validation.Valid
 import javax.validation.constraints.DecimalMax
@@ -26,6 +27,7 @@ import javax.validation.constraints.Min
 
 @RestController
 @RequestMapping("api/v1/persons")
+@Validated
 class PersonController {
     @Autowired
     internal lateinit var personsService: PersonsService
@@ -41,6 +43,9 @@ class PersonController {
 
     @Autowired
     internal lateinit var updatePersonLocationUseCase: UpdatePersonLocationUseCase
+
+    @Autowired
+    internal lateinit var getNearbyPersonsUseCase: GetNearbyPersonsUseCase
 
     @PostMapping("")
     fun createPerson(@Valid @RequestBody createPersonRequestDto: CreatePersonRequestDto): ResponseEntity<PersonResponseDto> {
@@ -69,39 +74,7 @@ class PersonController {
         @RequestParam @DecimalMin(value = "-180.0") @DecimalMax(value = "180.0") lon: Double,
         @RequestParam @Min(value = 0) @Max(value = 1000) radiusKm: Double
     ): ResponseEntity<List<PersonWithDistanceResponseDto>> {
-        val locations = locationsService.findAround(lat, lon, radiusKm)
-        if (locations.isEmpty()) {
-            return ResponseEntity.ok(emptyList())
-        }
-        // Calculate distances and fetch person data for each location
-        val personIds = locations.map { it.referenceId }
-        val persons = personsService.getByIds(personIds)
-        val personMap = persons.associateBy { it.id }
-        val responses = locations
-            .mapNotNull { location ->
-                val person = personMap[location.referenceId]
-                if (person != null) {
-                    val distance = DistanceCalculator.calculateDistance(
-                        lat1 = lat,
-                        lon1 = lon,
-                        lat2 = location.latitude,
-                        lon2 = location.longitude
-                    )
-                    PersonWithDistanceResponseDto(
-                        person = PersonMapper.toResponseDto(person),
-                        distanceKm = distance
-                    )
-                } else null
-            }
-            .sortedBy { it.distanceKm }
+        val responses = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
         return ResponseEntity.ok(responses)
     }
-
-    /*
-        TODO GET API to retrieve people around query location with a radius in KM, Use query param for radius.
-        TODO API just return a list of persons ids (JSON)
-        // Example
-        // John wants to know who is around his location within a radius of 10km
-        // API would be called using John's id and a radius 10km
-     */
 }

@@ -6,13 +6,15 @@ import com.persons.finder.domain.services.LocationsService
 import com.persons.finder.domain.services.PersonsService
 import com.persons.finder.application.usecases.CreatePersonUseCase
 import com.persons.finder.application.usecases.GetPersonsByIdsUseCase
-import com.persons.finder.domain.utils.DistanceCalculator
+import com.persons.finder.application.usecases.UpdatePersonLocationUseCase
+import com.persons.finder.application.usecases.GetNearbyPersonsUseCase
 import com.persons.finder.presentation.dto.mapper.LocationMapper
 import com.persons.finder.presentation.dto.mapper.PersonMapper
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
 import com.persons.finder.presentation.dto.request.UpdateLocationRequestDto
 import com.persons.finder.presentation.dto.response.LocationResponseDto
 import com.persons.finder.presentation.dto.response.PersonResponseDto
+import com.persons.finder.presentation.dto.response.PersonWithDistanceResponseDto
 import com.persons.finder.presentation.exceptions.PersonNotFoundException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -46,6 +48,12 @@ class PersonControllerTest {
     @Mock
     private lateinit var getPersonsByIdsUseCase: GetPersonsByIdsUseCase
 
+    @Mock
+    private lateinit var updatePersonLocationUseCase: UpdatePersonLocationUseCase
+
+    @Mock
+    private lateinit var getNearbyPersonsUseCase: GetNearbyPersonsUseCase
+
     private lateinit var personController: PersonController
 
     @BeforeEach
@@ -56,6 +64,8 @@ class PersonControllerTest {
             this.locationsService = this@PersonControllerTest.locationsService
             this.createPersonUseCase = this@PersonControllerTest.createPersonUseCase
             this.getPersonsByIdsUseCase = this@PersonControllerTest.getPersonsByIdsUseCase
+            this.updatePersonLocationUseCase = this@PersonControllerTest.updatePersonLocationUseCase
+            this.getNearbyPersonsUseCase = this@PersonControllerTest.getNearbyPersonsUseCase
         }
     }
 
@@ -107,10 +117,14 @@ class PersonControllerTest {
         // Given
         val personId = 1L
         val updateLocationRequestDto = UpdateLocationRequestDto(latitude = 40.7128, longitude = -74.0060)
-        val expectedPerson = Person(name = "John Doe", id = personId)
+        val expectedLocationResponse = LocationResponseDto(
+            referenceId = personId,
+            latitude = 40.7128,
+            longitude = -74.0060
+        )
 
-        whenever(personsService.getById(personId)).thenReturn(expectedPerson)
-        whenever(locationsService.addLocation(any())).then { }
+        whenever(updatePersonLocationUseCase.execute(personId, updateLocationRequestDto))
+            .thenReturn(expectedLocationResponse)
 
         // When
         val response: ResponseEntity<LocationResponseDto> = personController.updatePersonLocation(personId, updateLocationRequestDto)
@@ -123,20 +137,22 @@ class PersonControllerTest {
         assertEquals(personId, responseBody.referenceId)
         assertEquals(40.7128, responseBody.latitude)
         assertEquals(-74.0060, responseBody.longitude)
-        Mockito.verify(personsService).getById(personId)
-        Mockito.verify(locationsService).addLocation(any())
+        verify(updatePersonLocationUseCase).execute(personId, updateLocationRequestDto)
     }
 
     @Test
-    fun `updatePersonLocation should call services with correct parameters`() {
+    fun `updatePersonLocation should call useCase with correct parameters`() {
         // Given
         val personId = 2L
         val updateLocationRequestDto = UpdateLocationRequestDto(latitude = 51.5074, longitude = -0.1278)
-        val expectedPerson = Person(name = "Jane Smith", id = personId)
-        val expectedLocation = LocationMapper.toDomain(personId, updateLocationRequestDto)
+        val expectedLocationResponse = LocationResponseDto(
+            referenceId = personId,
+            latitude = 51.5074,
+            longitude = -0.1278
+        )
 
-        whenever(personsService.getById(personId)).thenReturn(expectedPerson)
-        whenever(locationsService.addLocation(expectedLocation)).then { }
+        whenever(updatePersonLocationUseCase.execute(personId, updateLocationRequestDto))
+            .thenReturn(expectedLocationResponse)
 
         // When
         val response = personController.updatePersonLocation(personId, updateLocationRequestDto)
@@ -144,8 +160,7 @@ class PersonControllerTest {
         // Then
         assertNotNull(response)
         assertEquals(HttpStatus.OK, response.statusCode)
-        Mockito.verify(personsService).getById(personId)
-        Mockito.verify(locationsService).addLocation(expectedLocation)
+        verify(updatePersonLocationUseCase).execute(personId, updateLocationRequestDto)
     }
 
     @Test
@@ -154,7 +169,8 @@ class PersonControllerTest {
         val personId = 999L
         val updateLocationRequestDto = UpdateLocationRequestDto(latitude = 40.7128, longitude = -74.0060)
 
-        whenever(personsService.getById(personId)).thenThrow(PersonNotFoundException(personId))
+        whenever(updatePersonLocationUseCase.execute(personId, updateLocationRequestDto))
+            .thenThrow(PersonNotFoundException(personId))
 
         // When / Then
         // Here we are testing that the controller throws a PersonNotFoundException when the person is not found
@@ -162,8 +178,7 @@ class PersonControllerTest {
         assertThrows<PersonNotFoundException> {
             personController.updatePersonLocation(personId, updateLocationRequestDto)
         }
-        verify(personsService).getById(personId)
-        verify(locationsService, never()).addLocation(any())
+        verify(updatePersonLocationUseCase).execute(personId, updateLocationRequestDto)
     }
 
     @Test
@@ -284,26 +299,14 @@ class PersonControllerTest {
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 10.0
-        
-        val nearbyLocation = Location(
-            referenceId = 1L,
-            latitude = 40.7129,
-            longitude = -74.0061
-        )
-        
-        val farLocation = Location(
-            referenceId = 2L,
-            latitude = 40.7138,
-            longitude = -74.0070
-        )
-        
-        val nearbyPerson = Person(name = "Nearby Person", id = 1L)
-        val farPerson = Person(name = "Far Person", id = 2L)
-        
-        whenever(locationsService.findAround(lat, lon, radiusKm))
-            .thenReturn(listOf(nearbyLocation, farLocation))
-        whenever(personsService.getByIds(listOf(1L, 2L)))
-            .thenReturn(listOf(nearbyPerson, farPerson))
+
+        val person1 = PersonResponseDto(id = 1L, name = "Nearby Person")
+        val person2 = PersonResponseDto(id = 2L, name = "Far Person")
+        val personWithDistance1 = PersonWithDistanceResponseDto(person = person1, distanceKm = 0.1)
+        val personWithDistance2 = PersonWithDistanceResponseDto(person = person2, distanceKm = 5.0)
+
+        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm))
+            .thenReturn(listOf(personWithDistance1, personWithDistance2))
 
         // When
         val response = personController.getNearbyPersons(lat, lon, radiusKm)
@@ -316,8 +319,7 @@ class PersonControllerTest {
         assertEquals("Nearby Person", responseBody[0].person.name)
         assertEquals("Far Person", responseBody[1].person.name)
         assertTrue(responseBody[0].distanceKm < responseBody[1].distanceKm)
-        verify(locationsService).findAround(lat, lon, radiusKm)
-        verify(personsService).getByIds(listOf(1L, 2L))
+        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm)
     }
 
     @Test
@@ -326,8 +328,8 @@ class PersonControllerTest {
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 1.0
-        
-        whenever(locationsService.findAround(lat, lon, radiusKm))
+
+        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm))
             .thenReturn(emptyList())
 
         // When
@@ -338,8 +340,7 @@ class PersonControllerTest {
         val responseBody = response.body
         assertNotNull(responseBody)
         assertTrue(responseBody.isEmpty())
-        verify(locationsService).findAround(lat, lon, radiusKm)
-        verify(personsService, never()).getByIds(any())
+        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm)
     }
 
     @Test
@@ -348,8 +349,8 @@ class PersonControllerTest {
         val lat = 0.0
         val lon = 0.0
         val radiusKm = 100.0
-        
-        whenever(locationsService.findAround(lat, lon, radiusKm))
+
+        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm))
             .thenReturn(emptyList())
 
         // When
@@ -357,7 +358,7 @@ class PersonControllerTest {
 
         // Then
         assertEquals(HttpStatus.OK, response.statusCode)
-        verify(locationsService).findAround(lat, lon, radiusKm)
+        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm)
     }
 
     @Test
@@ -366,8 +367,8 @@ class PersonControllerTest {
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 1000.0
-        
-        whenever(locationsService.findAround(lat, lon, radiusKm))
+
+        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm))
             .thenReturn(emptyList())
 
         // When
@@ -375,7 +376,7 @@ class PersonControllerTest {
 
         // Then
         assertEquals(HttpStatus.OK, response.statusCode)
-        verify(locationsService).findAround(lat, lon, radiusKm)
+        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm)
     }
 
     @Test
@@ -384,8 +385,8 @@ class PersonControllerTest {
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 0.1
-        
-        whenever(locationsService.findAround(lat, lon, radiusKm))
+
+        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm))
             .thenReturn(emptyList())
 
         // When
@@ -393,45 +394,6 @@ class PersonControllerTest {
 
         // Then
         assertEquals(HttpStatus.OK, response.statusCode)
-        verify(locationsService).findAround(lat, lon, radiusKm)
-    }
-
-    @Test
-    fun `getNearbyPersons should filter out locations with missing persons`() {
-        // Given
-        val lat = 40.7128
-        val lon = -74.0060
-        val radiusKm = 10.0
-        
-        val locationWithPerson = Location(
-            referenceId = 1L,
-            latitude = 40.7129,
-            longitude = -74.0061
-        )
-        
-        val locationWithoutPerson = Location(
-            referenceId = 999L, // Non-existent person
-            latitude = 40.7130,
-            longitude = -74.0062
-        )
-        
-        val person = Person(name = "Test Person", id = 1L)
-        
-        whenever(locationsService.findAround(lat, lon, radiusKm))
-            .thenReturn(listOf(locationWithPerson, locationWithoutPerson))
-        whenever(personsService.getByIds(listOf(1L, 999L)))
-            .thenReturn(listOf(person)) // Only person 1 exists
-
-        // When
-        val response = personController.getNearbyPersons(lat, lon, radiusKm)
-
-        // Then
-        assertEquals(HttpStatus.OK, response.statusCode)
-        val responseBody = response.body
-        assertNotNull(responseBody)
-        assertEquals(1, responseBody.size) // Only the person that exists
-        assertEquals("Test Person", responseBody[0].person.name)
-        verify(locationsService).findAround(lat, lon, radiusKm)
-        verify(personsService).getByIds(listOf(1L, 999L))
+        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm)
     }
 }
