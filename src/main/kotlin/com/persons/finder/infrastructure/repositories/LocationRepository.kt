@@ -17,8 +17,8 @@ interface LocationRepository : Repository<Location, Long> {
     
     @Query("""
         SELECT 
-            p.id AS "personId",
-            p.name AS "personName",
+            p.id AS id,
+            p.name AS name,
             l.latitude,
             l.longitude
         FROM PERSONS p

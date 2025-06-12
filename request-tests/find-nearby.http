@@ -18,13 +18,13 @@ Content-Type: application/json
 {"name": "Charlie Sherwood"}
 
 ### Remember to change the IDs below to match the created persons
-PUT http://localhost:8080/api/v1/persons/1/location
+PUT http://localhost:8080/api/v1/persons/2/location
 Content-Type: application/json
 
 {"latitude": -36.71728717024384, "longitude": 174.73580751020845}
 
 ### Remember to change the IDs below to match the created persons
-PUT http://localhost:8080/api/v1/persons/2/location
+PUT http://localhost:8080/api/v1/persons/3/location
 Content-Type: application/json
 
 {"latitude": -36.717300, "longitude": 174.735800}
@@ -48,13 +48,13 @@ Content-Type: application/json
 {"name": "Eve Albany"}
 
 ### Remember to change the IDs below to match the created persons
-PUT http://localhost:8080/api/v1/persons/4/location
+PUT http://localhost:8080/api/v1/persons/6/location
 Content-Type: application/json
 
 {"latitude": -36.72789864941169, "longitude": 174.71023398191028}
 
 ### Remember to change the IDs below to match the created persons
-PUT http://localhost:8080/api/v1/persons/5/location
+PUT http://localhost:8080/api/v1/persons/7/location
 Content-Type: application/json
 
 {"latitude": -36.727900, "longitude": 174.710200}

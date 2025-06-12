@@ -5,7 +5,7 @@ plugins {
 	id("io.spring.dependency-management") version "1.0.11.RELEASE"
 	kotlin("jvm") version "1.6.21"
 	kotlin("plugin.spring") version "1.6.21"
-	id("jacoco")
+	// id("jacoco")  // Temporarily disabled due to Java 22 compatibility issues
 }
 
 group = "com.persons.finder"
@@ -24,11 +24,18 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("com.h2database:h2:2.1.212")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.mockito:mockito-core:4.5.1")
 	testImplementation("org.mockito:mockito-junit-jupiter:4.5.1")
 	testImplementation("org.jetbrains.kotlin:kotlin-test:1.6.21")
 	testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+	
+	// Integration test dependencies
+	testImplementation("org.testcontainers:junit-jupiter:1.17.3")
+	testImplementation("org.testcontainers:testcontainers:1.17.3")
+	testImplementation("org.testcontainers:postgresql:1.17.3")
+	testImplementation("org.postgresql:postgresql:42.4.0")
 }
 
 tasks.withType<KotlinCompile> {
@@ -42,14 +49,14 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 }
 
-jacoco {
-	toolVersion = "0.8.8"
-}
-
-tasks.jacocoTestReport {
-	dependsOn(tasks.test)
-	reports {
-		xml.required.set(true)
-		html.required.set(true)
-	}
-}
+// jacoco {
+//     toolVersion = "0.8.11"
+// }
+//
+// tasks.jacocoTestReport {
+//     dependsOn(tasks.test)
+//     reports {
+//         xml.required.set(true)
+//         html.required.set(true)
+//     }
+// }

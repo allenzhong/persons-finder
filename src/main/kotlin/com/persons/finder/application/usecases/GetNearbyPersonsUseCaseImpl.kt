@@ -1,7 +1,6 @@
 package com.persons.finder.application.usecases
 
 import com.persons.finder.domain.services.LocationsService
-import com.persons.finder.presentation.dto.mapper.PersonMapper
 import com.persons.finder.presentation.dto.response.PersonResponseDto
 import com.persons.finder.presentation.dto.response.PersonWithDistanceResponseDto
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,8 +41,8 @@ class GetNearbyPersonsUseCaseImpl : GetNearbyPersonsUseCase {
             .map { (personLocation, distance) ->
                 PersonWithDistanceResponseDto(
                     person = PersonResponseDto(
-                        id = personLocation.personId,
-                        name = personLocation.personName
+                        id = personLocation.id,
+                        name = personLocation.name
                     ),
                     distanceKm = distance
                 )

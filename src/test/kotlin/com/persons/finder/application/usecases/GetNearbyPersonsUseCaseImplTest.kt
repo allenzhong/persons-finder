@@ -2,7 +2,6 @@ package com.persons.finder.application.usecases
 
 import com.persons.finder.domain.services.LocationsService
 import com.persons.finder.infrastructure.repositories.dto.PersonLocationDto
-import com.persons.finder.presentation.dto.response.PersonWithDistanceResponseDto
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -52,15 +51,15 @@ class GetNearbyPersonsUseCaseImplTest {
         val radiusKm = 10.0
 
         val nearbyPersonLocation = PersonLocationDto(
-            personId = 1L,
-            personName = "Nearby Person",
+            id = 1L,
+            name = "Nearby Person",
             latitude = 40.7129,
             longitude = -74.0061
         )
 
         val farPersonLocation = PersonLocationDto(
-            personId = 2L,
-            personName = "Far Person",
+            id = 2L,
+            name = "Far Person",
             latitude = 40.7138,
             longitude = -74.0070
         )
@@ -93,15 +92,15 @@ class GetNearbyPersonsUseCaseImplTest {
         val radiusKm = 5.0 // Small radius
 
         val nearbyPersonLocation = PersonLocationDto(
-            personId = 1L,
-            personName = "Nearby Person",
+            id = 1L,
+            name = "Nearby Person",
             latitude = 40.7129,
             longitude = -74.0061
         )
 
         val farPersonLocation = PersonLocationDto(
-            personId = 2L,
-            personName = "Far Person",
+            id = 2L,
+            name = "Far Person",
             latitude = 40.7138,
             longitude = -74.0070
         )
@@ -132,8 +131,8 @@ class GetNearbyPersonsUseCaseImplTest {
         val radiusKm = 100.0
 
         val personLocation = PersonLocationDto(
-            personId = 1L,
-            personName = "Test Person",
+            id = 1L,
+            name = "Test Person",
             latitude = 0.5, // Approximately 55km from (0,0)
             longitude = 0.5
         )

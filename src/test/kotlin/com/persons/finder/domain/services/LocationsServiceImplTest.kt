@@ -89,8 +89,8 @@ class LocationsServiceImplTest {
         val radiusKm = 10.0
 
         val personLocation = PersonLocationDto(
-            personId = 1L,
-            personName = "John Doe",
+            id = 1L,
+            name = "John Doe",
             latitude = 40.7129,
             longitude = -74.0061
         )
@@ -104,8 +104,8 @@ class LocationsServiceImplTest {
 
         // Then
         assertEquals(1, result.size)
-        assertEquals(1L, result[0].personId)
-        assertEquals("John Doe", result[0].personName)
+        assertEquals(1L, result[0].id)
+        assertEquals("John Doe", result[0].name)
         assertEquals(40.7129, result[0].latitude)
         assertEquals(-74.0061, result[0].longitude)
     }
