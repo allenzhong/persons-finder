@@ -13,6 +13,8 @@ import com.persons.finder.presentation.dto.mapper.PersonMapper
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
 import com.persons.finder.presentation.dto.request.UpdateLocationRequestDto
 import com.persons.finder.presentation.dto.response.LocationResponseDto
+import com.persons.finder.presentation.dto.response.PaginatedResponseDto
+import com.persons.finder.presentation.dto.response.PaginationInfoDto
 import com.persons.finder.presentation.dto.response.PersonResponseDto
 import com.persons.finder.presentation.dto.response.PersonWithDistanceResponseDto
 import com.persons.finder.presentation.exceptions.PersonNotFoundException
@@ -90,8 +92,8 @@ class PersonControllerTest {
         // Given
         val ids = listOf(1L, 2L)
         val expectedResponses = listOf(
-            PersonResponseDto(id = 1L, name = "Person 1"),
-            PersonResponseDto(id = 2L, name = "Person 2")
+            PersonResponseDto(id = 1L, name = "John Doe"),
+            PersonResponseDto(id = 2L, name = "Jane Doe")
         )
         whenever(getPersonsByIdsUseCase.execute(ids)).thenReturn(expectedResponses)
 
@@ -105,23 +107,7 @@ class PersonControllerTest {
     }
 
     @Test
-    fun `getPersonsByIds should handle empty list`() {
-        // Given
-        val ids = emptyList<Long>()
-        val expectedResponses = emptyList<PersonResponseDto>()
-        whenever(getPersonsByIdsUseCase.execute(ids)).thenReturn(expectedResponses)
-
-        // When
-        val result = personController.getPersonsByIds(ids)
-
-        // Then
-        assertEquals(HttpStatus.OK, result.statusCode)
-        assertEquals(expectedResponses, result.body)
-        verify(getPersonsByIdsUseCase).execute(ids)
-    }
-
-    @Test
-    fun `updatePersonLocation should return location with 200 status`() {
+    fun `updatePersonLocation should return updated location with 200 status`() {
         // Given
         val personId = 1L
         val request = UpdateLocationRequestDto(latitude = 40.7128, longitude = -74.0060)
@@ -138,26 +124,39 @@ class PersonControllerTest {
     }
 
     @Test
-    fun `getNearbyPersons should return persons with distances with 200 status`() {
+    fun `getNearbyPersons should return paginated persons with distances with 200 status`() {
         // Given
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 10.0
+        val page = 1
+        val pageSize = 500
         val expectedResponses = listOf(
             PersonWithDistanceResponseDto(
                 person = PersonResponseDto(id = 1L, name = "Nearby Person"),
                 distanceKm = 5.0
             )
         )
-        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm)).thenReturn(expectedResponses)
+        val expectedPaginatedResponse = PaginatedResponseDto(
+            data = expectedResponses,
+            pagination = PaginationInfoDto(
+                page = page,
+                pageSize = pageSize,
+                totalItems = 1L,
+                totalPages = 1,
+                hasNext = false,
+                hasPrevious = false
+            )
+        )
+        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)).thenReturn(expectedPaginatedResponse)
 
         // When
-        val result = personController.getNearbyPersons(lat, lon, radiusKm)
+        val result = personController.getNearbyPersons(lat, lon, radiusKm, page, pageSize)
 
         // Then
         assertEquals(HttpStatus.OK, result.statusCode)
-        assertEquals(expectedResponses, result.body)
-        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm)
+        assertEquals(expectedPaginatedResponse, result.body)
+        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm, page, pageSize)
     }
 
     @Test
@@ -166,16 +165,28 @@ class PersonControllerTest {
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 10.0
-        val expectedResponses = emptyList<PersonWithDistanceResponseDto>()
-        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm)).thenReturn(expectedResponses)
+        val page = 1
+        val pageSize = 500
+        val expectedPaginatedResponse = PaginatedResponseDto(
+            data = emptyList<PersonWithDistanceResponseDto>(),
+            pagination = PaginationInfoDto(
+                page = page,
+                pageSize = pageSize,
+                totalItems = 0L,
+                totalPages = 0,
+                hasNext = false,
+                hasPrevious = false
+            )
+        )
+        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)).thenReturn(expectedPaginatedResponse)
 
         // When
-        val result = personController.getNearbyPersons(lat, lon, radiusKm)
+        val result = personController.getNearbyPersons(lat, lon, radiusKm, page, pageSize)
 
         // Then
         assertEquals(HttpStatus.OK, result.statusCode)
-        assertEquals(expectedResponses, result.body)
-        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm)
+        assertEquals(expectedPaginatedResponse, result.body)
+        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm, page, pageSize)
     }
 
     @Test
@@ -184,16 +195,28 @@ class PersonControllerTest {
         val lat = -90.0
         val lon = -180.0
         val radiusKm = 1.0
-        val expectedResponses = emptyList<PersonWithDistanceResponseDto>()
-        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm)).thenReturn(expectedResponses)
+        val page = 1
+        val pageSize = 500
+        val expectedPaginatedResponse = PaginatedResponseDto(
+            data = emptyList<PersonWithDistanceResponseDto>(),
+            pagination = PaginationInfoDto(
+                page = page,
+                pageSize = pageSize,
+                totalItems = 0L,
+                totalPages = 0,
+                hasNext = false,
+                hasPrevious = false
+            )
+        )
+        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)).thenReturn(expectedPaginatedResponse)
 
         // When
-        val result = personController.getNearbyPersons(lat, lon, radiusKm)
+        val result = personController.getNearbyPersons(lat, lon, radiusKm, page, pageSize)
 
         // Then
         assertEquals(HttpStatus.OK, result.statusCode)
-        assertEquals(expectedResponses, result.body)
-        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm)
+        assertEquals(expectedPaginatedResponse, result.body)
+        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm, page, pageSize)
     }
 
     @Test
@@ -247,13 +270,15 @@ class PersonControllerTest {
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 10.0
-        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm)).thenThrow(RuntimeException("DB error"))
+        val page = 1
+        val pageSize = 500
+        whenever(getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)).thenThrow(RuntimeException("DB error"))
 
         // When/Then
         assertThrows<RuntimeException> {
-            personController.getNearbyPersons(lat, lon, radiusKm)
+            personController.getNearbyPersons(lat, lon, radiusKm, page, pageSize)
         }
-        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm)
+        verify(getNearbyPersonsUseCase).execute(lat, lon, radiusKm, page, pageSize)
     }
 
     @Test

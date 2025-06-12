@@ -13,5 +13,11 @@ data class NearbyPersonsRequestDto(
     val lon: Double,
     
     @field:Min(value = 0) @field:Max(value = 1000)
-    val radiusKm: Double
+    val radiusKm: Double,
+    
+    @field:Min(value = 1) @field:Max(value = 1000)
+    val page: Int = 1,
+    
+    @field:Min(value = 1) @field:Max(value = 1000)
+    val pageSize: Int = 500
 ) 

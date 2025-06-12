@@ -1,17 +1,15 @@
 package com.persons.finder.presentation.controllers
 
-import com.persons.finder.domain.services.LocationsService
-import com.persons.finder.domain.services.PersonsService
-import com.persons.finder.domain.models.Location
 import com.persons.finder.application.usecases.CreatePersonUseCase
+import com.persons.finder.application.usecases.GetNearbyPersonsUseCase
 import com.persons.finder.application.usecases.GetPersonsByIdsUseCase
 import com.persons.finder.application.usecases.UpdatePersonLocationUseCase
-import com.persons.finder.application.usecases.GetNearbyPersonsUseCase
-import com.persons.finder.presentation.dto.mapper.LocationMapper
-import com.persons.finder.presentation.dto.mapper.PersonMapper
+import com.persons.finder.domain.services.LocationsService
+import com.persons.finder.domain.services.PersonsService
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
 import com.persons.finder.presentation.dto.request.UpdateLocationRequestDto
 import com.persons.finder.presentation.dto.response.LocationResponseDto
+import com.persons.finder.presentation.dto.response.PaginatedResponseDto
 import com.persons.finder.presentation.dto.response.PersonResponseDto
 import com.persons.finder.presentation.dto.response.PersonWithDistanceResponseDto
 import org.springframework.beans.factory.annotation.Autowired
@@ -72,9 +70,11 @@ class PersonController {
     fun getNearbyPersons(
         @RequestParam @DecimalMin(value = "-90.0") @DecimalMax(value = "90.0") lat: Double,
         @RequestParam @DecimalMin(value = "-180.0") @DecimalMax(value = "180.0") lon: Double,
-        @RequestParam @Min(value = 0) @Max(value = 1000) radiusKm: Double
-    ): ResponseEntity<List<PersonWithDistanceResponseDto>> {
-        val responses = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
-        return ResponseEntity.ok(responses)
+        @RequestParam @Min(value = 0) @Max(value = 1000) radiusKm: Double,
+        @RequestParam(defaultValue = "1") @Min(value = 1) @Max(value = 1000) page: Int,
+        @RequestParam(defaultValue = "500") @Min(value = 1) @Max(value = 1000) pageSize: Int
+    ): ResponseEntity<PaginatedResponseDto<PersonWithDistanceResponseDto>> {
+        val response = getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)
+        return ResponseEntity.ok(response)
     }
 }

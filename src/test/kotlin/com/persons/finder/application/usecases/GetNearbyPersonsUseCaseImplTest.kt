@@ -11,6 +11,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 
 @ExtendWith(MockitoExtension::class)
 class GetNearbyPersonsUseCaseImplTest {
@@ -27,28 +28,36 @@ class GetNearbyPersonsUseCaseImplTest {
     }
 
     @Test
-    fun `execute should return empty list when no persons found`() {
+    fun `execute should return empty paginated response when no persons found`() {
         // Given
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 10.0
+        val page = 1
+        val pageSize = 500
 
         whenever(locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm)).thenReturn(emptyList())
 
         // When
-        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
+        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)
 
         // Then
-        assertTrue(result.isEmpty())
+        assertTrue(result.data.isEmpty())
+        assertEquals(0L, result.pagination.totalItems)
+        assertEquals(0, result.pagination.totalPages)
+        assertEquals(page, result.pagination.page)
+        assertEquals(pageSize, result.pagination.pageSize)
         verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
     }
 
     @Test
-    fun `execute should return persons with distances sorted by distance`() {
+    fun `execute should return paginated persons with distances sorted by distance`() {
         // Given
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 10.0
+        val page = 1
+        val pageSize = 500
 
         val nearbyPersonLocation = PersonLocationDto(
             id = 1L,
@@ -74,13 +83,17 @@ class GetNearbyPersonsUseCaseImplTest {
             .thenReturn(2.0) // Far person is 2.0km away
 
         // When
-        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
+        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)
 
         // Then
-        assertEquals(2, result.size)
-        assertEquals("Nearby Person", result[0].person.name)
-        assertEquals("Far Person", result[1].person.name)
-        assertTrue(result[0].distanceKm < result[1].distanceKm)
+        assertEquals(2, result.data.size)
+        assertEquals("Nearby Person", result.data[0].person.name)
+        assertEquals("Far Person", result.data[1].person.name)
+        assertTrue(result.data[0].distanceKm < result.data[1].distanceKm)
+        assertEquals(2L, result.pagination.totalItems)
+        assertEquals(1, result.pagination.totalPages)
+        assertEquals(page, result.pagination.page)
+        assertEquals(pageSize, result.pagination.pageSize)
         verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
     }
 
@@ -90,6 +103,8 @@ class GetNearbyPersonsUseCaseImplTest {
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 5.0 // Small radius
+        val page = 1
+        val pageSize = 500
 
         val nearbyPersonLocation = PersonLocationDto(
             id = 1L,
@@ -115,11 +130,12 @@ class GetNearbyPersonsUseCaseImplTest {
             .thenReturn(7.0) // Outside 5km radius
 
         // When
-        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
+        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)
 
         // Then
-        assertEquals(1, result.size) // Only the nearby person
-        assertEquals("Nearby Person", result[0].person.name)
+        assertEquals(1, result.data.size) // Only the nearby person
+        assertEquals("Nearby Person", result.data[0].person.name)
+        assertEquals(1L, result.pagination.totalItems)
         verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
     }
 
@@ -129,6 +145,8 @@ class GetNearbyPersonsUseCaseImplTest {
         val lat = 0.0
         val lon = 0.0
         val radiusKm = 100.0
+        val page = 1
+        val pageSize = 500
 
         val personLocation = PersonLocationDto(
             id = 1L,
@@ -141,12 +159,12 @@ class GetNearbyPersonsUseCaseImplTest {
             .thenReturn(listOf(personLocation))
 
         // When
-        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
+        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)
 
         // Then
-        assertEquals(1, result.size)
+        assertEquals(1, result.data.size)
         val expectedDistance = locationsService.calculateDistance(0.0, 0.0, 0.5, 0.5)
-        assertEquals(expectedDistance, result[0].distanceKm, 0.001)
+        assertEquals(expectedDistance, result.data[0].distanceKm, 0.001)
         verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
     }
 
@@ -156,15 +174,18 @@ class GetNearbyPersonsUseCaseImplTest {
         val lat = -90.0
         val lon = -180.0
         val radiusKm = 1.0
+        val page = 1
+        val pageSize = 500
 
         whenever(locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm))
             .thenReturn(emptyList())
 
         // When
-        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
+        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)
 
         // Then
-        assertTrue(result.isEmpty())
+        assertTrue(result.data.isEmpty())
+        assertEquals(0L, result.pagination.totalItems)
         verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
     }
 
@@ -174,15 +195,52 @@ class GetNearbyPersonsUseCaseImplTest {
         val lat = 40.7128
         val lon = -74.0060
         val radiusKm = 1000.0
+        val page = 1
+        val pageSize = 500
 
         whenever(locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm))
             .thenReturn(emptyList())
 
         // When
-        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm)
+        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)
 
         // Then
-        assertTrue(result.isEmpty())
+        assertTrue(result.data.isEmpty())
+        assertEquals(0L, result.pagination.totalItems)
         verify(locationsService).findPersonsWithLocationsAround(lat, lon, radiusKm)
+    }
+
+    @Test
+    fun `execute should handle pagination correctly`() {
+        // Given
+        val lat = 40.7128
+        val lon = -74.0060
+        val radiusKm = 10.0
+        val page = 2
+        val pageSize = 1
+
+        val person1 = PersonLocationDto(id = 1L, name = "Person 1", latitude = 40.7129, longitude = -74.0061)
+        val person2 = PersonLocationDto(id = 2L, name = "Person 2", latitude = 40.7130, longitude = -74.0062)
+
+        whenever(locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm))
+            .thenReturn(listOf(person1, person2))
+        
+        whenever(locationsService.calculateDistance(lat, lon, person1.latitude, person1.longitude))
+            .thenReturn(0.5)
+        whenever(locationsService.calculateDistance(lat, lon, person2.latitude, person2.longitude))
+            .thenReturn(1.0)
+
+        // When
+        val result = getNearbyPersonsUseCase.execute(lat, lon, radiusKm, page, pageSize)
+
+        // Then
+        assertEquals(1, result.data.size)
+        assertEquals("Person 2", result.data[0].person.name)
+        assertEquals(2L, result.pagination.totalItems)
+        assertEquals(2, result.pagination.totalPages)
+        assertEquals(page, result.pagination.page)
+        assertEquals(pageSize, result.pagination.pageSize)
+        assertFalse(result.pagination.hasNext)
+        assertTrue(result.pagination.hasPrevious)
     }
 } 

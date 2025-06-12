@@ -296,13 +296,18 @@ class PersonControllerIntegrationTest {
         val sherwoodJson = objectMapper.readTree(sherwoodResult.response.contentAsString)
         println("Sherwood response: ${sherwoodResult.response.contentAsString}")
         // Should contain Bob and Charlie (Alice has no location set)
-        val sherwoodIds = sherwoodJson.map { it["person"]["id"].asLong() }.toSet()
+        val sherwoodIds = sherwoodJson["data"].map { it["person"]["id"].asLong() }.toSet()
         println("Sherwood IDs found: $sherwoodIds")
         println("Expected Bob ID: $bobId, Charlie ID: $charlieId")
         assert(sherwoodIds.contains(bobId))
         assert(sherwoodIds.contains(charlieId))
         assert(!sherwoodIds.contains(daveId))
         assert(!sherwoodIds.contains(eveId))
+        // Assert pagination
+        assert(sherwoodJson["pagination"].isObject)
+        assert(sherwoodJson["pagination"]["totalItems"].asInt() >= 2)
+        assert(sherwoodJson["pagination"]["page"].asInt() == 1)
+        assert(sherwoodJson["pagination"]["pageSize"].asInt() == 500)
 
         // When & Then - Find people near Albany Northshore (should return all Sherwood people with radius 2.8km)
         val albanyResult = mockMvc.perform(get("/api/v1/persons/nearby")
@@ -314,7 +319,7 @@ class PersonControllerIntegrationTest {
             .andReturn()
         val albanyJson = objectMapper.readTree(albanyResult.response.contentAsString)
         println("Albany response: ${albanyResult.response.contentAsString}")
-        val albanyIds = albanyJson.map { it["person"]["id"].asLong() }.toSet()
+        val albanyIds = albanyJson["data"].map { it["person"]["id"].asLong() }.toSet()
         println("Albany IDs found: $albanyIds")
         println("Expected all IDs: $bobId, $charlieId, $daveId, $eveId")
         // Should contain Bob, Charlie, Dave, Eve (Alice has no location set)
@@ -322,5 +327,10 @@ class PersonControllerIntegrationTest {
         assert(albanyIds.contains(charlieId))
         assert(albanyIds.contains(daveId))
         assert(albanyIds.contains(eveId))
+        // Assert pagination
+        assert(albanyJson["pagination"].isObject)
+        assert(albanyJson["pagination"]["totalItems"].asInt() >= 4)
+        assert(albanyJson["pagination"]["page"].asInt() == 1)
+        assert(albanyJson["pagination"]["pageSize"].asInt() == 500)
     }
 }
