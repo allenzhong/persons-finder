@@ -106,3 +106,117 @@ Implement your solution and push it to your **own GitHub repository**.
 * Use **OpenAPI/Swagger** to document your APIs (optional, but encouraged)
 * Handle edge cases like missing locations or malformed input
 * Design the system **as if it were going into production**
+
+---
+
+## 📁 Project Structure
+
+```
+persons-finder/
+├── 📂 src/
+│   ├── 📂 main/
+│   │   ├── 📂 kotlin/com/persons/finder/
+│   │   │   ├── 📂 application/
+│   │   │   │   └── 📂 usecases/           # Business logic use cases
+│   │   │   │       ├── CreatePersonUseCase.kt
+│   │   │   │       ├── GetNearbyPersonsUseCase.kt
+│   │   │   │       └── UpdatePersonLocationUseCase.kt
+│   │   │   ├── 📂 domain/
+│   │   │   │   ├── 📂 models/              # Domain entities
+│   │   │   │   │   ├── Person.kt
+│   │   │   │   │   └── Location.kt
+│   │   │   │   └── 📂 services/            # Domain services
+│   │   │   │       ├── LocationsService.kt
+│   │   │   │       └── PersonsService.kt
+│   │   │   ├── 📂 infrastructure/
+│   │   │   │   ├── 📂 config/              # Configuration classes
+│   │   │   │   │   └── GeoConfig.kt
+│   │   │   │   └── 📂 repositories/        # Data access layer
+│   │   │   │       ├── LocationRepository.kt
+│   │   │   │       └── PersonRepository.kt
+│   │   │   ├── 📂 presentation/
+│   │   │   │   ├── 📂 controllers/         # REST API controllers
+│   │   │   │   │   └── PersonController.kt
+│   │   │   │   └── 📂 dto/                 # Data Transfer Objects
+│   │   │   │       ├── 📂 request/         # API request DTOs
+│   │   │   │       └── 📂 response/        # API response DTOs
+│   │   │   └── 📂 seeding/                 # Data seeding utilities
+│   │   │       ├── DataSeeder.kt
+│   │   │       └── SeedingCommandLineRunner.kt
+│   │   └── 📂 resources/
+│   │       ├── application.properties      # Main configuration
+│   │       ├── application-postgres.properties  # PostgreSQL config
+│   │       ├── application-seeding.properties   # Seeding config
+│   │       ├── schema.sql                  # H2 database schema
+│   │       └── schema-postgres.sql         # PostgreSQL schema
+│   └── 📂 test/
+│       └── 📂 kotlin/com/persons/finder/
+│           ├── 📂 application/             # Use case tests
+│           ├── 📂 domain/                  # Domain service tests
+│           ├── 📂 infrastructure/          # Repository tests
+│           └── 📂 integration/             # Integration tests
+│               └── 📂 controllers/         # API endpoint tests
+├── 📂 scripts/
+│   └── benchmark-scalability.sh            # Performance benchmark script
+├── 📂 benchmark/                           # Benchmark results and reports
+│   ├── README.md                           # Benchmark documentation
+│   ├── benchmark-results-*.csv             # Raw benchmark data
+│   ├── scalability-benchmark-report-*.md   # Formatted reports
+│   └── seeding-times.txt                   # Seeding performance data
+├── 📂 request-tests/                       # HTTP request test files
+│   └── find-nearby.http                    # API testing examples
+├── build.gradle.kts                        # Gradle build configuration
+├── gradlew                                 # Gradle wrapper script
+└── README.md                               # This file
+```
+
+### 📋 Key Directories Explained
+
+#### **🏗️ Architecture Layers**
+- **`application/`**: Contains use cases that orchestrate business logic
+- **`domain/`**: Core business entities and domain services
+- **`infrastructure/`**: Data access layer and external configurations
+- **`presentation/`**: REST API controllers and DTOs
+
+#### **🧪 Testing Structure**
+- **`test/`**: Mirrors the main source structure for comprehensive testing
+- **`integration/`**: End-to-end API tests
+- **`application/`, `domain/`, `infrastructure/`**: Unit tests for each layer
+
+#### **📊 Benchmark Suite**
+- **`benchmark/`**: Contains all performance testing results and documentation
+- **`scripts/`**: Automated benchmark execution scripts
+
+#### **🔧 Configuration**
+- **`resources/`**: Application properties for different environments
+- **`schema-*.sql`**: Database schemas for H2 and PostgreSQL
+
+#### **📝 Documentation & Testing**
+- **`request-tests/`**: HTTP files for manual API testing
+- **`README.md`**: Project documentation and setup instructions
+
+This structure follows **Clean Architecture** principles with clear separation of concerns, making the codebase maintainable, testable, and scalable.
+
+---
+
+## 🚀 Performance Benchmarking
+
+This project includes a comprehensive performance benchmarking suite to test scalability across different dataset sizes and usage patterns.
+
+### 🏃‍♂️ Running Benchmarks
+
+```bash
+# Run the complete benchmark suite
+./scripts/benchmark-scalability.sh
+```
+
+### 📈 Benchmark Results
+
+- 📄 **[Benchmark Documentation](benchmark/README.md)** - Complete guide to running and interpreting benchmarks
+- 📊 **[Latest Benchmark Report](benchmark/scalability-benchmark-report-20250613-212746.md)** - Detailed performance analysis
+- 📋 **[Raw Benchmark Data](benchmark/benchmark-results-20250613-212746.csv)** - CSV data for custom analysis
+- ⏱️ **[Seeding Performance](benchmark/seeding-times.txt)** - Data insertion performance metrics
+
+---
+
+*The benchmark suite demonstrates the system's ability to handle real-world scalability requirements, from small datasets to millions of records, ensuring robust performance across all usage scenarios.*
