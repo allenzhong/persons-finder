@@ -25,7 +25,7 @@ class PersonsServiceImpl : PersonsService {
         return if (ids.isEmpty()) {
             emptyList()
         } else {
-            personRepository.findByIds(ids)
+            personRepository.findAllById(ids).toList()
         }
     }
 }

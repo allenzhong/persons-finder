@@ -9,10 +9,10 @@ import org.springframework.data.repository.query.Param
 
 interface LocationRepository : Repository<Location, Long> {
     
-    @Query("SELECT * FROM LOCATIONS WHERE reference_id = :referenceId")
+    @Query("SELECT * FROM locations WHERE reference_id = :referenceId")
     fun findByReferenceId(@Param("referenceId") referenceId: Long): Location?
     
-    @Query("SELECT * FROM LOCATIONS")
+    @Query("SELECT * FROM locations")
     fun findAll(): List<Location>
     
     @Query("""
@@ -21,8 +21,8 @@ interface LocationRepository : Repository<Location, Long> {
             p.name AS name,
             l.latitude,
             l.longitude
-        FROM PERSONS p
-        INNER JOIN LOCATIONS l ON p.id = l.reference_id
+        FROM persons p
+        INNER JOIN locations l ON p.id = l.reference_id
         WHERE l.latitude BETWEEN :minLat AND :maxLat 
         AND l.longitude BETWEEN :minLon AND :maxLon
     """)
@@ -34,7 +34,7 @@ interface LocationRepository : Repository<Location, Long> {
     ): List<PersonLocationDto>
     
     @Modifying
-    @Query("INSERT INTO LOCATIONS (reference_id, latitude, longitude) VALUES (:referenceId, :latitude, :longitude)")
+    @Query("INSERT INTO locations (reference_id, latitude, longitude) VALUES (:referenceId, :latitude, :longitude)")
     fun insertLocation(
         @Param("referenceId") referenceId: Long,
         @Param("latitude") latitude: Double,
@@ -42,10 +42,14 @@ interface LocationRepository : Repository<Location, Long> {
     )
     
     @Modifying
-    @Query("UPDATE LOCATIONS SET latitude = :latitude, longitude = :longitude WHERE reference_id = :referenceId")
+    @Query("UPDATE locations SET latitude = :latitude, longitude = :longitude WHERE reference_id = :referenceId")
     fun updateLocation(
         @Param("referenceId") referenceId: Long,
         @Param("latitude") latitude: Double,
         @Param("longitude") longitude: Double
     )
+    
+    @Modifying
+    @Query("DELETE FROM locations")
+    fun deleteAll()
 }

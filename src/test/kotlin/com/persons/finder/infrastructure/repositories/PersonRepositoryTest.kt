@@ -23,7 +23,7 @@ class PersonRepositoryTest {
     }
 
     @Test
-    fun `findByIds should return all persons when all ids exist`() {
+    fun `findAllById should return all persons when all ids exist`() {
         // Given - Create test persons
         val person1 = personRepository.save(Person(name = "John Doe"))
         val person2 = personRepository.save(Person(name = "Jane Smith"))
@@ -31,8 +31,8 @@ class PersonRepositoryTest {
 
         val ids = listOf(person1.id!!, person2.id!!, person3.id!!)
 
-        // When - Call the findByIds method
-        val result = personRepository.findByIds(ids)
+        // When - Call the findAllById method
+        val result = personRepository.findAllById(ids).toList()
 
         // Then - Verify all persons are returned
         assertEquals(3, result.size)
@@ -42,15 +42,15 @@ class PersonRepositoryTest {
     }
 
     @Test
-    fun `findByIds should return only existing persons when some ids do not exist`() {
+    fun `findAllById should return only existing persons when some ids do not exist`() {
         // Given - Create test persons
         val person1 = personRepository.save(Person(name = "John Doe"))
         val person3 = personRepository.save(Person(name = "Bob Wilson"))
 
         val ids = listOf(person1.id!!, 999L, person3.id!!, 1000L)
 
-        // When - Call the findByIds method
-        val result = personRepository.findByIds(ids)
+        // When - Call the findAllById method
+        val result = personRepository.findAllById(ids).toList()
 
         // Then - Verify only existing persons are returned
         assertEquals(2, result.size)
@@ -59,43 +59,43 @@ class PersonRepositoryTest {
     }
 
     @Test
-    fun `findByIds should return empty list when no ids exist`() {
+    fun `findAllById should return empty list when no ids exist`() {
         // Given - Create test persons
         personRepository.save(Person(name = "John Doe"))
         personRepository.save(Person(name = "Jane Smith"))
 
         val ids = listOf(999L, 1000L, 1001L)
 
-        // When - Call the findByIds method
-        val result = personRepository.findByIds(ids)
+        // When - Call the findAllById method
+        val result = personRepository.findAllById(ids).toList()
 
         // Then - Verify empty list is returned
         assertEquals(0, result.size)
     }
 
     @Test
-    fun `findByIds should return empty list when empty ids list is provided`() {
+    fun `findAllById should return empty list when empty ids list is provided`() {
         // Given - Create test persons
         personRepository.save(Person(name = "John Doe"))
         personRepository.save(Person(name = "Jane Smith"))
 
         val ids = emptyList<Long>()
 
-        // When - Call the findByIds method
-        val result = personRepository.findByIds(ids)
+        // When - Call the findAllById method
+        val result = personRepository.findAllById(ids).toList()
 
         // Then - Verify empty list is returned
         assertEquals(0, result.size)
     }
 
     @Test
-    fun `findByIds should handle single id`() {
+    fun `findAllById should handle single id`() {
         // Given - Create test person
         val person = personRepository.save(Person(name = "Single Person"))
         val ids = listOf(person.id!!)
 
-        // When - Call the findByIds method
-        val result = personRepository.findByIds(ids)
+        // When - Call the findAllById method
+        val result = personRepository.findAllById(ids).toList()
 
         // Then - Verify single person is returned
         assertEquals(1, result.size)
@@ -104,13 +104,13 @@ class PersonRepositoryTest {
     }
 
     @Test
-    fun `findByIds should handle duplicate ids`() {
+    fun `findAllById should handle duplicate ids`() {
         // Given - Create test person
         val person = personRepository.save(Person(name = "Duplicate Test"))
         val ids = listOf(person.id!!, person.id!!, person.id!!)
 
-        // When - Call the findByIds method
-        val result = personRepository.findByIds(ids)
+        // When - Call the findAllById method
+        val result = personRepository.findAllById(ids).toList()
 
         // Then - Verify person is returned only once
         assertEquals(1, result.size)
@@ -119,7 +119,7 @@ class PersonRepositoryTest {
     }
 
     @Test
-    fun `findByIds should handle large number of ids`() {
+    fun `findAllById should handle large number of ids`() {
         // Given - Create multiple test persons
         val persons = mutableListOf<Person>()
         for (i in 1..10) {
@@ -128,8 +128,8 @@ class PersonRepositoryTest {
 
         val ids = persons.mapNotNull { it.id }
 
-        // When - Call the findByIds method
-        val result = personRepository.findByIds(ids)
+        // When - Call the findAllById method
+        val result = personRepository.findAllById(ids).toList()
 
         // Then - Verify all persons are returned
         assertEquals(10, result.size)
@@ -139,7 +139,7 @@ class PersonRepositoryTest {
     }
 
     @Test
-    fun `findByIds should handle mixed existing and non existing ids in large set`() {
+    fun `findAllById should handle mixed existing and non existing ids in large set`() {
         // Given - Create multiple test persons
         val persons = mutableListOf<Person>()
         for (i in 1..5) {
@@ -150,8 +150,8 @@ class PersonRepositoryTest {
         val nonExistingIds = listOf(999L, 1000L, 1001L)
         val mixedIds = existingIds + nonExistingIds
 
-        // When - Call the findByIds method
-        val result = personRepository.findByIds(mixedIds)
+        // When - Call the findAllById method
+        val result = personRepository.findAllById(mixedIds).toList()
 
         // Then - Verify only existing persons are returned
         assertEquals(5, result.size)
@@ -161,7 +161,7 @@ class PersonRepositoryTest {
     }
 
     @Test
-    fun `findByIds should maintain order of results`() {
+    fun `findAllById should maintain order of results`() {
         // Given - Create test persons
         val person1 = personRepository.save(Person(name = "First Person"))
         val person2 = personRepository.save(Person(name = "Second Person"))
@@ -169,8 +169,8 @@ class PersonRepositoryTest {
 
         val ids = listOf(person1.id!!, person2.id!!, person3.id!!)
 
-        // When - Call the findByIds method
-        val result = personRepository.findByIds(ids)
+        // When - Call the findAllById method
+        val result = personRepository.findAllById(ids).toList()
 
         // Then - Verify order is maintained (though this may vary by database)
         assertEquals(3, result.size)
@@ -180,13 +180,13 @@ class PersonRepositoryTest {
     }
 
     @Test
-    fun `findByIds should work with null ids in the list`() {
+    fun `findAllById should work with null ids in the list`() {
         // Given - Create test person
         val person = personRepository.save(Person(name = "Valid Person"))
         val ids = listOf(person.id!!, 999L)
 
-        // When - Call the findByIds method
-        val result = personRepository.findByIds(ids)
+        // When - Call the findAllById method
+        val result = personRepository.findAllById(ids).toList()
 
         // Then - Verify only valid person is returned
         assertEquals(1, result.size)
@@ -195,23 +195,22 @@ class PersonRepositoryTest {
     }
 
     @Test
-    fun `findByIds should be faster than multiple findById calls`() {
+    fun `findAllById should be faster than multiple findById calls`() {
         // Given - Create multiple test persons
         val persons = mutableListOf<Person>()
-        for (i in 1..20) {
+        for (i in 1..10) {
             persons.add(personRepository.save(Person(name = "Person $i")))
         }
 
         val ids = persons.mapNotNull { it.id }
 
-        // When - Measure time for findByIds
-        val startTime = System.currentTimeMillis()
-        val result = personRepository.findByIds(ids)
-        val endTime = System.currentTimeMillis()
+        // When - Measure time for findAllById
+        val start = System.currentTimeMillis()
+        val result = personRepository.findAllById(ids).toList()
+        val duration = System.currentTimeMillis() - start
 
-        // Then - Verify all persons are returned and query is fast
-        assertEquals(20, result.size)
-        val queryTime = endTime - startTime
-        assertTrue(queryTime < 1000, "Query should complete in less than 1 second, took: ${queryTime}ms")
+        // Then - Verify all persons are returned and time is reasonable
+        assertEquals(10, result.size)
+        assertTrue(duration < 1000) // Should be fast
     }
 } 

@@ -222,7 +222,7 @@ class PersonsServiceImplTest {
         val person3 = Person(name = "Bob Wilson", id = 3L)
         val ids = listOf(1L, 2L, 3L)
 
-        whenever(personRepository.findByIds(ids)).thenReturn(listOf(person1, person2, person3))
+        whenever(personRepository.findAllById(ids)).thenReturn(listOf(person1, person2, person3))
 
         // When - Call the service method
         val result = personsService.getByIds(ids)
@@ -234,7 +234,7 @@ class PersonsServiceImplTest {
         assertEquals(person3, result[2])
 
         // Verify repository was called once with all ids
-        verify(personRepository).findByIds(ids)
+        verify(personRepository).findAllById(ids)
     }
 
     @Test
@@ -244,7 +244,7 @@ class PersonsServiceImplTest {
         val person3 = Person(name = "Bob Wilson", id = 3L)
         val ids = listOf(1L, 2L, 3L)
 
-        whenever(personRepository.findByIds(ids)).thenReturn(listOf(person1, person3))
+        whenever(personRepository.findAllById(ids)).thenReturn(listOf(person1, person3))
 
         // When - Call the service method
         val result = personsService.getByIds(ids)
@@ -255,14 +255,14 @@ class PersonsServiceImplTest {
         assertEquals(person3, result[1])
 
         // Verify repository was called once with all ids
-        verify(personRepository).findByIds(ids)
+        verify(personRepository).findAllById(ids)
     }
 
     @Test
     fun `getByIds should return empty list when no ids exist`() {
         // Given - Mock the repository behavior
         val ids = listOf(1L, 2L)
-        whenever(personRepository.findByIds(ids)).thenReturn(emptyList())
+        whenever(personRepository.findAllById(ids)).thenReturn(emptyList())
 
         // When - Call the service method
         val result = personsService.getByIds(ids)
@@ -271,7 +271,7 @@ class PersonsServiceImplTest {
         assertEquals(0, result.size)
 
         // Verify repository was called once with all ids
-        verify(personRepository).findByIds(ids)
+        verify(personRepository).findAllById(ids)
     }
 
     @Test
@@ -283,7 +283,7 @@ class PersonsServiceImplTest {
         assertEquals(0, result.size)
 
         // Verify repository was not called
-        verify(personRepository, times(0)).findByIds(any())
+        verify(personRepository, times(0)).findAllById(any())
     }
 
     @Test
@@ -292,7 +292,7 @@ class PersonsServiceImplTest {
         val person = Person(name = "Single Person", id = 1L)
         val ids = listOf(1L)
 
-        whenever(personRepository.findByIds(ids)).thenReturn(listOf(person))
+        whenever(personRepository.findAllById(ids)).thenReturn(listOf(person))
 
         // When - Call the service method
         val result = personsService.getByIds(ids)
@@ -302,7 +302,7 @@ class PersonsServiceImplTest {
         assertEquals(person, result[0])
 
         // Verify repository was called once with the id
-        verify(personRepository).findByIds(ids)
+        verify(personRepository).findAllById(ids)
     }
 
     @Test
@@ -327,14 +327,14 @@ class PersonsServiceImplTest {
             Person(name = "Person 2", id = 2L),
             Person(name = "Person 3", id = 3L)
         )
-        whenever(personRepository.findByIds(ids)).thenReturn(persons)
+        whenever(personRepository.findAllById(ids)).thenReturn(persons)
 
         // When
         val result = personsService.getByIds(ids)
 
         // Then
         assertEquals(persons, result)
-        verify(personRepository).findByIds(ids)
+        verify(personRepository).findAllById(ids)
     }
 
     @Test
@@ -345,7 +345,7 @@ class PersonsServiceImplTest {
             Person(name = "Person 1", id = 1L),
             Person(name = "Person 2", id = 2L)
         )
-        whenever(personRepository.findByIds(ids)).thenReturn(persons)
+        whenever(personRepository.findAllById(ids)).thenReturn(persons)
 
         // When
         val result = personsService.getByIds(ids)
@@ -353,6 +353,6 @@ class PersonsServiceImplTest {
         // Then
         assertEquals(persons, result)
         assertEquals(2, result.size)
-        verify(personRepository).findByIds(ids)
+        verify(personRepository).findAllById(ids)
     }
 }

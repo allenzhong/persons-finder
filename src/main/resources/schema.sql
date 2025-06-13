@@ -1,22 +1,16 @@
 -- schema.sql
-CREATE TABLE IF NOT EXISTS PERSONS (
+CREATE TABLE IF NOT EXISTS persons (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS LOCATIONS (
+CREATE TABLE IF NOT EXISTS locations (
     reference_id BIGINT NOT NULL,
     latitude DOUBLE NOT NULL,
     longitude DOUBLE NOT NULL,
-    FOREIGN KEY (reference_id) REFERENCES PERSONS(id)
+    FOREIGN KEY (reference_id) REFERENCES persons(id)
 );
 
--- Indexes for optimizing nearby people queries
--- Composite index for bounding box queries (latitude range)
-CREATE INDEX IF NOT EXISTS idx_locations_lat_lon ON LOCATIONS(latitude, longitude);
-
--- Index for reference_id lookups
-CREATE INDEX IF NOT EXISTS idx_locations_reference_id ON LOCATIONS(reference_id);
-
--- Additional index for longitude-based queries if needed
-CREATE INDEX IF NOT EXISTS idx_locations_lon_lat ON LOCATIONS(longitude, latitude); 
+DROP INDEX IF EXISTS idx_locations_lat_lon_ref;
+CREATE INDEX idx_locations_lat_lon_ref
+    ON LOCATIONS(latitude, longitude, reference_id);

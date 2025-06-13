@@ -23,6 +23,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("com.h2database:h2:2.1.212")
+	implementation("org.postgresql:postgresql:42.4.0")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -35,7 +36,6 @@ dependencies {
 	testImplementation("org.testcontainers:junit-jupiter:1.17.3")
 	testImplementation("org.testcontainers:testcontainers:1.17.3")
 	testImplementation("org.testcontainers:postgresql:1.17.3")
-	testImplementation("org.postgresql:postgresql:42.4.0")
 }
 
 tasks.withType<KotlinCompile> {
