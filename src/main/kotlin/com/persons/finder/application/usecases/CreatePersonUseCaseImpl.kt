@@ -1,6 +1,5 @@
 package com.persons.finder.application.usecases
 
-import com.persons.finder.domain.models.Person
 import com.persons.finder.domain.services.PersonsService
 import com.persons.finder.presentation.dto.mapper.PersonMapper
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto

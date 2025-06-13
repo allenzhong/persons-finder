@@ -1,39 +1,25 @@
 package com.persons.finder.presentation.controllers
 
-import com.persons.finder.domain.models.Location
-import com.persons.finder.domain.models.Person
-import com.persons.finder.domain.services.LocationsService
-import com.persons.finder.domain.services.PersonsService
 import com.persons.finder.application.usecases.CreatePersonUseCase
+import com.persons.finder.application.usecases.GetNearbyPersonsUseCase
 import com.persons.finder.application.usecases.GetPersonsByIdsUseCase
 import com.persons.finder.application.usecases.UpdatePersonLocationUseCase
-import com.persons.finder.application.usecases.GetNearbyPersonsUseCase
-import com.persons.finder.presentation.dto.mapper.LocationMapper
-import com.persons.finder.presentation.dto.mapper.PersonMapper
+import com.persons.finder.domain.services.LocationsService
+import com.persons.finder.domain.services.PersonsService
 import com.persons.finder.presentation.dto.request.CreatePersonRequestDto
 import com.persons.finder.presentation.dto.request.UpdateLocationRequestDto
-import com.persons.finder.presentation.dto.response.LocationResponseDto
-import com.persons.finder.presentation.dto.response.PaginatedResponseDto
-import com.persons.finder.presentation.dto.response.PaginationInfoDto
-import com.persons.finder.presentation.dto.response.PersonResponseDto
-import com.persons.finder.presentation.dto.response.PersonWithDistanceResponseDto
+import com.persons.finder.presentation.dto.response.*
 import com.persons.finder.presentation.exceptions.PersonNotFoundException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.any
-import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 @ExtendWith(MockitoExtension::class)
 class PersonControllerTest {

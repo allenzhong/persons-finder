@@ -1,6 +1,5 @@
 package com.persons.finder.seeding
 
-import com.persons.finder.domain.models.Location
 import com.persons.finder.domain.models.Person
 import com.persons.finder.infrastructure.repositories.LocationRepository
 import com.persons.finder.infrastructure.repositories.PersonRepository
