@@ -213,9 +213,17 @@ This project includes a comprehensive performance benchmarking suite to test sca
 ### 📈 Benchmark Results
 
 - 📄 **[Benchmark Documentation](benchmark/README.md)** - Complete guide to running and interpreting benchmarks
-- 📊 **[Latest Benchmark Report](benchmark/scalability-benchmark-report-20250613-212746.md)** - Detailed performance analysis
-- 📋 **[Raw Benchmark Data](benchmark/benchmark-results-20250613-212746.csv)** - CSV data for custom analysis
-- ⏱️ **[Seeding Performance](benchmark/seeding-times.txt)** - Data insertion performance metrics
+- 📊 **[Latest Benchmark Report](benchmark/scalability-benchmark-report-20250615-142210.md)** - Detailed performance analysis with 100M dataset results
+- 📋 **[Raw Benchmark Data](benchmark/benchmark-results-20250615-142210.csv)** - CSV data for custom analysis and visualization
+- ⏱️ **[Seeding Performance](benchmark/seeding-times.txt)** - Data insertion performance metrics across all dataset sizes
+
+### 🎯 Key Performance Highlights
+
+- **✅ 100M Dataset**: Successfully tested with optimized JVM settings
+- **⚡ Response Times**: 1km queries complete in ~500ms, 100km queries in ~25 seconds  
+- **🧠 Memory Optimization**: Database-level pagination prevents OutOfMemoryError
+- **📈 Scalability**: Linear performance scaling with dataset size
+- **🔧 Optimizations**: G1GC garbage collector, 4GB heap, efficient SQL queries
 
 ---
 

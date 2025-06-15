@@ -2,6 +2,23 @@
 
 This folder contains the scalability benchmark results and reports for the Persons Finder application.
 
+## 📊 Benchmark Results
+
+### Latest Reports & Data
+- **📄 [Latest Benchmark Report](./scalability-benchmark-report-20250615-142210.md)** - Complete performance analysis with 100M dataset results
+- **📋 [Raw Benchmark Data](./benchmark-results-20250615-142210.csv)** - CSV data for custom analysis and visualization
+- **⏱️ [Seeding Performance](./seeding-times.txt)** - Data insertion performance metrics across all dataset sizes
+
+### Key Performance Highlights
+- **100M Dataset**: Successfully tested with optimized JVM settings
+- **Response Times**: 1km queries complete in ~500ms, 100km queries in ~25 seconds
+- **Memory Optimization**: Database-level pagination prevents OutOfMemoryError
+- **Scalability**: Linear performance scaling with dataset size
+
+### Historical Reports
+- [Previous Report (20250614)](./scalability-benchmark-report-20250614-094056.md) - 10M dataset baseline
+- [Baseline Report (20250613)](./scalability-benchmark-report-20250613-212746.md) - Initial performance metrics
+
 ## Overview
 
 The benchmark suite tests the performance and scalability of the Persons Finder API across different dataset sizes, search radii, and pagination settings. It provides comprehensive insights into how the system performs under various load conditions.
@@ -35,7 +52,7 @@ Execute the benchmark script from the project root:
 ```
 
 The script will automatically:
-- Test multiple dataset sizes (1K, 10K, 100K, 1M, 10M records)
+- Test multiple dataset sizes (1K, 10K, 100K, 1M, 10M, 100M records)
 - Test different search radii (1km, 5km, 10km, 50km, 100km)
 - Test various page sizes (10, 50, 100)
 - Generate comprehensive reports
@@ -47,8 +64,9 @@ The script will automatically:
 - **100K records**: ~5-10 minutes
 - **1M records**: ~15-30 minutes
 - **10M records**: ~1-2 hours
+- **100M records**: ~8-12 hours
 
-**Total estimated time**: 2-3 hours
+**Total estimated time**: 10-15 hours (with 100M dataset)
 
 ## Report Structure
 
@@ -65,7 +83,7 @@ The script will automatically:
 - Test coordinates (NYC: 40.7128, -74.0060)
 - Radii tested (1km, 5km, 10km, 50km, 100km)
 - Page sizes (10, 50, 100)
-- Dataset sizes (1K, 10K, 100K, 1M, 10M)
+- Dataset sizes (1K, 10K, 100K, 1M, 10M, 100M)
 - Data distribution (URBAN_CENTERS)
 
 #### 2. Response Time Matrix
@@ -99,13 +117,15 @@ Analysis of:
 - **< 50ms**: Excellent performance
 - **50-100ms**: Good performance
 - **100-500ms**: Acceptable performance
-- **> 500ms**: May need optimization
+- **500ms-5s**: High load performance
+- **> 5s**: Large dataset/radius queries
 
 ### Result Counts
 - **0 results**: No people found within radius (expected for small radii)
 - **1-10 results**: Few people nearby
 - **10-100 results**: Moderate population density
-- **> 100 results**: High population density
+- **100-1000 results**: High population density
+- **> 1000 results**: Very high population density
 
 ### Seeding Performance
 - **> 1000 records/sec**: Excellent seeding performance
@@ -158,6 +178,11 @@ Page size should have minimal impact on response time if pagination is implement
    - Check test coordinates
    - Ensure data was seeded successfully
 
+5. **OutOfMemoryError**
+   - Use optimized JVM settings: `-Xms1g -Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=200`
+   - Ensure database-level pagination is working
+   - Monitor memory usage during large queries
+
 ### Debug Mode
 
 The script includes debug output for the first test case. Look for:
@@ -183,24 +208,24 @@ This ensures realistic population density patterns for testing.
 
 ## Performance Baselines
 
-Based on typical results:
+Based on latest results with optimized JVM settings:
 
-| Dataset Size | Expected Seeding Time | Expected Response Time (1km) |
-|--------------|---------------------|------------------------------|
-| 1K           | 2-3 seconds         | 10-30ms                      |
-| 10K          | 3-5 seconds         | 15-40ms                      |
-| 100K         | 5-10 seconds        | 20-60ms                      |
-| 1M           | 15-30 seconds       | 50-150ms                     |
-| 10M          | 2-5 minutes         | 100-500ms                    |
+| Dataset Size | Expected Seeding Time | Expected Response Time (1km) | Expected Response Time (100km) |
+|--------------|---------------------|------------------------------|--------------------------------|
+| 1K           | 2-3 seconds         | 10-30ms                      | 20-30ms                        |
+| 10K          | 3-5 seconds         | 15-40ms                      | 30-40ms                        |
+| 100K         | 5-10 seconds        | 20-60ms                      | 50-60ms                        |
+| 1M           | 15-30 seconds       | 50-150ms                     | 150-200ms                      |
+| 10M          | 2-5 minutes         | 100-500ms                    | 1-3 seconds                    |
+| 100M         | 8-15 hours          | 500ms-1s                     | 20-30 seconds                  |
 
 ## Next Steps
 
 After running benchmarks:
 1. Analyze response time trends
 2. Identify performance bottlenecks
-3. Optimize database queries if needed
-4. Consider scaling strategies for larger datasets
-5. Document performance improvements
+3. Review the [latest benchmark report](./scalability-benchmark-report-20250615-142210.md) for detailed analysis
+4. Use [raw data](./benchmark-results-20250615-142210.csv) for custom visualizations
 
 ---
 
