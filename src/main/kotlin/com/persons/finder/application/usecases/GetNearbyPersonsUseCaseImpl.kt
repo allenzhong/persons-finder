@@ -14,14 +14,15 @@ class GetNearbyPersonsUseCaseImpl : GetNearbyPersonsUseCase {
     internal lateinit var locationsService: LocationsService
 
     override fun execute(lat: Double, lon: Double, radiusKm: Double, page: Int, pageSize: Int): PaginatedResponseDto<PersonWithDistanceResponseDto> {
-        // Get persons with locations within bounding box using join query (single database call)
-        val personsWithLocations = locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm)
-        if (personsWithLocations.isEmpty()) {
+        // Use paginated service method to prevent loading all records into memory
+        val paginatedResult = locationsService.findPersonsWithLocationsAroundPaginated(lat, lon, radiusKm, page, pageSize)
+        
+        if (paginatedResult.persons.isEmpty()) {
             return createEmptyPaginatedResponse(page, pageSize)
         }
 
         // Calculate distances and filter by radius (business logic in use case layer)
-        val personsWithDistances = personsWithLocations
+        val personsWithDistances = paginatedResult.persons
             .map { personLocation ->
                 val distance = locationsService.calculateDistance(
                     lat1 = lat,
@@ -38,20 +39,8 @@ class GetNearbyPersonsUseCaseImpl : GetNearbyPersonsUseCase {
             return createEmptyPaginatedResponse(page, pageSize)
         }
 
-        // Apply pagination
-        val totalItems = personsWithDistances.size.toLong()
-        val totalPages = ((totalItems + pageSize - 1) / pageSize).toInt()
-        val startIndex = (page - 1) * pageSize
-        val endIndex = minOf(startIndex + pageSize, personsWithDistances.size)
-        
-        val paginatedData = if (startIndex < personsWithDistances.size) {
-            personsWithDistances.subList(startIndex, endIndex)
-        } else {
-            emptyList()
-        }
-
         // Create response DTOs
-        val responseData = paginatedData
+        val responseData = personsWithDistances
             .map { (personLocation, distance) ->
                 PersonWithDistanceResponseDto(
                     person = PersonResponseDto(
@@ -61,6 +50,10 @@ class GetNearbyPersonsUseCaseImpl : GetNearbyPersonsUseCase {
                     distanceKm = distance
                 )
             }
+
+        // Calculate pagination info based on the total count from database
+        val totalItems = paginatedResult.totalCount
+        val totalPages = ((totalItems + pageSize - 1) / pageSize).toInt()
 
         return PaginatedResponseDto(
             data = responseData,

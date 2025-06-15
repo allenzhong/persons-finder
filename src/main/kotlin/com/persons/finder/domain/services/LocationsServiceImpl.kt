@@ -35,18 +35,38 @@ class LocationsServiceImpl : LocationsService {
         TODO("Not yet implemented")
     }
 
-
-    override fun findPersonsWithLocationsAround(latitude: Double, longitude: Double, radiusInKm: Double): List<PersonLocationDto> {
+    override fun findPersonsWithLocationsAroundPaginated(
+        latitude: Double, 
+        longitude: Double, 
+        radiusInKm: Double,
+        page: Int,
+        pageSize: Int
+    ): PaginatedPersonLocationResult {
         // Calculate bounding box for efficient filtering
         val boundingBox = calculateBoundingBox(latitude, longitude, radiusInKm)
         
-        // Get persons with locations within the bounding box using join query
-        return locationRepository.findPersonsWithLocationsInBoundingBox(
+        // Calculate offset for pagination
+        val offset = (page - 1) * pageSize
+        
+        // Get total count first
+        val totalCount = locationRepository.countPersonsWithLocationsInBoundingBox(
             minLat = boundingBox.minLat,
             maxLat = boundingBox.maxLat,
             minLon = boundingBox.minLon,
             maxLon = boundingBox.maxLon
         )
+        
+        // Get paginated persons with locations within the bounding box
+        val persons = locationRepository.findPersonsWithLocationsInBoundingBoxPaginated(
+            minLat = boundingBox.minLat,
+            maxLat = boundingBox.maxLat,
+            minLon = boundingBox.minLon,
+            maxLon = boundingBox.maxLon,
+            limit = pageSize,
+            offset = offset
+        )
+        
+        return PaginatedPersonLocationResult(persons = persons, totalCount = totalCount)
     }
 
     override fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {

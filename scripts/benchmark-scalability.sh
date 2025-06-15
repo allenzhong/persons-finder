@@ -81,7 +81,7 @@ seed_data() {
     log "Seeding $dataset_size records..."
     
     START_TIME=$(date +%s)
-    java -jar build/libs/PersonsFinder-0.0.1-SNAPSHOT.jar --spring.profiles.active=postgres --seeding.enabled=true --seeding.personCount=$dataset_size --seeding.distribution=URBAN_CENTERS > /dev/null 2>&1
+    java -Xms1g -Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -jar build/libs/PersonsFinder-0.0.1-SNAPSHOT.jar --spring.profiles.active=postgres --seeding.enabled=true --seeding.personCount=$dataset_size --seeding.distribution=URBAN_CENTERS > /dev/null 2>&1
     END_TIME=$(date +%s)
     SEEDING_DURATION=$((END_TIME - START_TIME))
     
@@ -98,7 +98,7 @@ seed_data() {
 # Function to start application
 start_application() {
     log "Starting application..."
-    java -jar build/libs/PersonsFinder-0.0.1-SNAPSHOT.jar --spring.profiles.active=postgres > /dev/null 2>&1 &
+    java -Xms1g -Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -jar build/libs/PersonsFinder-0.0.1-SNAPSHOT.jar --spring.profiles.active=postgres > /dev/null 2>&1 &
     APP_PID=$!
     
     # Wait for application to start

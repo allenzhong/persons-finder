@@ -13,6 +13,7 @@ import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 
 @ExtendWith(MockitoExtension::class)
 class LocationsServiceImplTest {
@@ -61,53 +62,6 @@ class LocationsServiceImplTest {
             latitude = 40.7128,
             longitude = -74.0060
         )
-    }
-
-    @Test
-    fun `findPersonsWithLocationsAround should return empty list when no persons found`() {
-        // Given
-        val lat = 40.7128
-        val lon = -74.0060
-        val radiusKm = 10.0
-
-        whenever(locationRepository.findPersonsWithLocationsInBoundingBox(
-            any<Double>(), any<Double>(), any<Double>(), any<Double>()
-        )).thenReturn(emptyList())
-
-        // When
-        val result = locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm)
-
-        // Then
-        assertTrue(result.isEmpty())
-    }
-
-    @Test
-    fun `findPersonsWithLocationsAround should return persons with locations`() {
-        // Given
-        val lat = 40.7128
-        val lon = -74.0060
-        val radiusKm = 10.0
-
-        val personLocation = PersonLocationDto(
-            id = 1L,
-            name = "John Doe",
-            latitude = 40.7129,
-            longitude = -74.0061
-        )
-
-        whenever(locationRepository.findPersonsWithLocationsInBoundingBox(
-            any<Double>(), any<Double>(), any<Double>(), any<Double>()
-        )).thenReturn(listOf(personLocation))
-
-        // When
-        val result = locationsService.findPersonsWithLocationsAround(lat, lon, radiusKm)
-
-        // Then
-        assertEquals(1, result.size)
-        assertEquals(1L, result[0].id)
-        assertEquals("John Doe", result[0].name)
-        assertEquals(40.7129, result[0].latitude)
-        assertEquals(-74.0061, result[0].longitude)
     }
 
     @Test
@@ -198,5 +152,159 @@ class LocationsServiceImplTest {
         assertTrue(equatorBox.maxLon > equatorBox.minLon)
         assertTrue(polarBox.maxLat > polarBox.minLat)
         assertTrue(polarBox.maxLon > polarBox.minLon)
+    }
+
+    @Test
+    fun `findPersonsWithLocationsAroundPaginated should return empty result when no persons found`() {
+        // Given
+        val lat = 40.7128
+        val lon = -74.0060
+        val radiusKm = 10.0
+        val page = 1
+        val pageSize = 10
+
+        whenever(locationRepository.countPersonsWithLocationsInBoundingBox(
+            any<Double>(), any<Double>(), any<Double>(), any<Double>()
+        )).thenReturn(0L)
+        
+        whenever(locationRepository.findPersonsWithLocationsInBoundingBoxPaginated(
+            any<Double>(), any<Double>(), any<Double>(), any<Double>(), any<Int>(), any<Int>()
+        )).thenReturn(emptyList())
+
+        // When
+        val result = locationsService.findPersonsWithLocationsAroundPaginated(lat, lon, radiusKm, page, pageSize)
+
+        // Then
+        assertTrue(result.persons.isEmpty())
+        assertEquals(0L, result.totalCount)
+    }
+
+    @Test
+    fun `findPersonsWithLocationsAroundPaginated should return paginated persons with correct count`() {
+        // Given
+        val lat = 40.7128
+        val lon = -74.0060
+        val radiusKm = 10.0
+        val page = 1
+        val pageSize = 2
+
+        val person1 = PersonLocationDto(id = 1L, name = "Person 1", latitude = 40.7129, longitude = -74.0061)
+        val person2 = PersonLocationDto(id = 2L, name = "Person 2", latitude = 40.7130, longitude = -74.0062)
+
+        whenever(locationRepository.countPersonsWithLocationsInBoundingBox(
+            any<Double>(), any<Double>(), any<Double>(), any<Double>()
+        )).thenReturn(5L) // Total 5 persons in bounding box
+        
+        whenever(locationRepository.findPersonsWithLocationsInBoundingBoxPaginated(
+            any<Double>(), any<Double>(), any<Double>(), any<Double>(), eq(2), eq(0)
+        )).thenReturn(listOf(person1, person2))
+
+        // When
+        val result = locationsService.findPersonsWithLocationsAroundPaginated(lat, lon, radiusKm, page, pageSize)
+
+        // Then
+        assertEquals(2, result.persons.size)
+        assertEquals(5L, result.totalCount)
+        assertEquals(1L, result.persons[0].id)
+        assertEquals("Person 1", result.persons[0].name)
+        assertEquals(2L, result.persons[1].id)
+        assertEquals("Person 2", result.persons[1].name)
+    }
+
+    @Test
+    fun `findPersonsWithLocationsAroundPaginated should calculate correct offset for page 2`() {
+        // Given
+        val lat = 40.7128
+        val lon = -74.0060
+        val radiusKm = 10.0
+        val page = 2
+        val pageSize = 3
+
+        val person4 = PersonLocationDto(id = 4L, name = "Person 4", latitude = 40.7131, longitude = -74.0063)
+        val person5 = PersonLocationDto(id = 5L, name = "Person 5", latitude = 40.7132, longitude = -74.0064)
+
+        whenever(locationRepository.countPersonsWithLocationsInBoundingBox(
+            any<Double>(), any<Double>(), any<Double>(), any<Double>()
+        )).thenReturn(5L)
+        
+        // Should call with offset = (2-1) * 3 = 3
+        whenever(locationRepository.findPersonsWithLocationsInBoundingBoxPaginated(
+            any<Double>(), any<Double>(), any<Double>(), any<Double>(), eq(3), eq(3)
+        )).thenReturn(listOf(person4, person5))
+
+        // When
+        val result = locationsService.findPersonsWithLocationsAroundPaginated(lat, lon, radiusKm, page, pageSize)
+
+        // Then
+        assertEquals(2, result.persons.size)
+        assertEquals(5L, result.totalCount)
+        assertEquals(4L, result.persons[0].id)
+        assertEquals("Person 4", result.persons[0].name)
+        assertEquals(5L, result.persons[1].id)
+        assertEquals("Person 5", result.persons[1].name)
+    }
+
+    @Test
+    fun `findPersonsWithLocationsAroundPaginated should handle edge case with page 1 and large page size`() {
+        // Given
+        val lat = 40.7128
+        val lon = -74.0060
+        val radiusKm = 10.0
+        val page = 1
+        val pageSize = 1000
+
+        whenever(locationRepository.countPersonsWithLocationsInBoundingBox(
+            any<Double>(), any<Double>(), any<Double>(), any<Double>()
+        )).thenReturn(50L)
+        
+        whenever(locationRepository.findPersonsWithLocationsInBoundingBoxPaginated(
+            any<Double>(), any<Double>(), any<Double>(), any<Double>(), eq(1000), eq(0)
+        )).thenReturn(emptyList())
+
+        // When
+        val result = locationsService.findPersonsWithLocationsAroundPaginated(lat, lon, radiusKm, page, pageSize)
+
+        // Then
+        assertTrue(result.persons.isEmpty())
+        assertEquals(50L, result.totalCount)
+    }
+
+    @Test
+    fun `findPersonsWithLocationsAroundPaginated should use correct bounding box parameters`() {
+        // Given
+        val lat = 40.7128
+        val lon = -74.0060
+        val radiusKm = 10.0
+        val page = 1
+        val pageSize = 10
+
+        // Calculate expected bounding box
+        val expectedBoundingBox = locationsService.calculateBoundingBox(lat, lon, radiusKm)
+
+        whenever(locationRepository.countPersonsWithLocationsInBoundingBox(
+            eq(expectedBoundingBox.minLat), eq(expectedBoundingBox.maxLat),
+            eq(expectedBoundingBox.minLon), eq(expectedBoundingBox.maxLon)
+        )).thenReturn(1L)
+        
+        whenever(locationRepository.findPersonsWithLocationsInBoundingBoxPaginated(
+            eq(expectedBoundingBox.minLat), eq(expectedBoundingBox.maxLat),
+            eq(expectedBoundingBox.minLon), eq(expectedBoundingBox.maxLon),
+            eq(10), eq(0)
+        )).thenReturn(emptyList())
+
+        // When
+        locationsService.findPersonsWithLocationsAroundPaginated(lat, lon, radiusKm, page, pageSize)
+
+        // Then - verify that the correct bounding box parameters were used
+        verify(locationRepository).countPersonsWithLocationsInBoundingBox(
+            eq(expectedBoundingBox.minLat), eq(expectedBoundingBox.maxLat),
+            eq(expectedBoundingBox.minLon), eq(expectedBoundingBox.maxLon)
+        )
+        
+        verify(locationRepository).findPersonsWithLocationsInBoundingBoxPaginated(
+            eq(expectedBoundingBox.minLat), eq(expectedBoundingBox.maxLat),
+            eq(expectedBoundingBox.minLon), eq(expectedBoundingBox.maxLon),
+            eq(10), eq(0)
+        )
     }
 } 

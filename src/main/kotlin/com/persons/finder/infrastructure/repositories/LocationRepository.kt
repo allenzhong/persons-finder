@@ -33,6 +33,42 @@ interface LocationRepository : Repository<Location, Long> {
         @Param("maxLon") maxLon: Double
     ): List<PersonLocationDto>
     
+    @Query("""
+        SELECT 
+            p.id AS id,
+            p.name AS name,
+            l.latitude,
+            l.longitude
+        FROM persons p
+        INNER JOIN locations l ON p.id = l.reference_id
+        WHERE l.latitude BETWEEN :minLat AND :maxLat 
+        AND l.longitude BETWEEN :minLon AND :maxLon
+        ORDER BY l.latitude, l.longitude
+        LIMIT :limit OFFSET :offset
+    """)
+    fun findPersonsWithLocationsInBoundingBoxPaginated(
+        @Param("minLat") minLat: Double,
+        @Param("maxLat") maxLat: Double,
+        @Param("minLon") minLon: Double,
+        @Param("maxLon") maxLon: Double,
+        @Param("limit") limit: Int,
+        @Param("offset") offset: Int
+    ): List<PersonLocationDto>
+    
+    @Query("""
+        SELECT COUNT(*)
+        FROM persons p
+        INNER JOIN locations l ON p.id = l.reference_id
+        WHERE l.latitude BETWEEN :minLat AND :maxLat 
+        AND l.longitude BETWEEN :minLon AND :maxLon
+    """)
+    fun countPersonsWithLocationsInBoundingBox(
+        @Param("minLat") minLat: Double,
+        @Param("maxLat") maxLat: Double,
+        @Param("minLon") minLon: Double,
+        @Param("maxLon") maxLon: Double
+    ): Long
+    
     @Modifying
     @Query("INSERT INTO locations (reference_id, latitude, longitude) VALUES (:referenceId, :latitude, :longitude)")
     fun insertLocation(
